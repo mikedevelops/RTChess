@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "outDir": "dist",
+    "target": "ES6",
+    "strict": true,
+    "noUnusedLocals": false, // Re-enable this!
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*", "levels/**/*"],
+  "exclude": ["node_modules"]
+}
