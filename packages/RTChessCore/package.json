@@ -1,0 +1,19 @@
+{
+  "name": "rtchess-core",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/exports.js",
+  "types": "dist/exports.d.ts",
+  "scripts": {
+    "watch": "tsc --watch --declarationDir dist --declaration",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/socket.io-client": "^1.4.33",
+    "concurrently": "^5.2.0",
+    "typescript": "^3.9.3"
+  }
+}

@@ -8,6 +8,12 @@ import SceneManager from "./Scene/SceneManager";
 import SandboxScene from "./Scene/SandboxScene";
 import DebugInputManager from "./Input/DebugInputManager";
 import MoveResolver from "./Runtime/MoveResolver";
+import io from "socket.io-client";
+import { Lobby } from 'rtchess-core';
+
+const socket = io("", {
+  onlyBinaryUpgrades: true
+});
 
 const root = document.getElementById("stage");
 const dpr = window.devicePixelRatio || 1;
@@ -25,11 +31,11 @@ const input = new InputDelegator();
 const renderer = new Renderer(root, dpr);
 const moveResolver = new MoveResolver();
 const sceneManager = new SceneManager([new SandboxScene()]);
-const debug = new Debugger([
+const lobby = new Lobby();
+const debug = new Debugger(socket, lobby, [
   DebugFlag.FRAMES,
-  //DebugFlag.ENTITY_TREE,
   DebugFlag.TRANSACTIONS,
-  //DebugFlag.EVENTS,
+  DebugFlag.NETWORK,
 ]);
 const runtime = new Runtime(
   renderer,
@@ -48,6 +54,10 @@ if (!runtime.isProduction()) {
 // TODO: Some sort of loading state here perhaps?
 // TODO: Read into detecting when the font is loaded...
 
+socket.on("lobby", (players: object) => {
+  lobby.parse(players);
+});
+
 /**
  * Short delay before starting to runtime to ensure
  * fonts have been loaded
@@ -55,3 +65,4 @@ if (!runtime.isProduction()) {
 window.setTimeout(() => {
   runtime.start();
 }, 25);
+

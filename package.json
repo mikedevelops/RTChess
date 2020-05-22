@@ -1,15 +1,24 @@
 {
-  "name": "RTChessMono",
+  "name": "rtchess-mono",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:server": "npm run build:client && npm run build:server && npm run prepare:assets && concurrently \"npm:watch:client\" \"npm:watch:server\" \"npm:watch:core\"",
+    "build:client": "parcel build ./packages/RTChessClient/src/index.ts --out-dir ./packages/RTChessServer/dist/public --out-file client.js",
+    "watch:client": "parcel watch ./packages/RTChessClient/src/index.ts --out-dir ./packages/RTChessServer/dist/public --out-file client.js",
+    "build:server": "cd packages/RTChessServer && npm run build",
+    "watch:server": "cd packages/RTChessServer && npm run watch",
+    "watch:core": "cd packages/RTChessCore && npm run watch",
+    "prepare:assets": "mkdir -p packages/RTChessServer/dist/public/fonts && cp \"packages/RTChessClient/fonts/Perfect DOS VGA 437.ttf\" \"packages/RTChessServer/dist/public/fonts/Perfect DOS VGA 437.ttf\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "lerna": "^3.21.0"
+    "concurrently": "^5.2.0",
+    "lerna": "^3.21.0",
+    "parcel-bundler": "^1.12.4"
   }
 }

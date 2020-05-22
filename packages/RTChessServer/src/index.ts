@@ -1,9 +1,25 @@
 import express from "express";
+import http from "http";
+import socketio, { Socket } from "socket.io";
+import { Lobby } from "rtchess-core";
 
 const app = express();
+const server = http.createServer(app);
+const io = socketio(server);
 const PORT = process.env.PORT || 8080;
 
 app.use(express.static("dist/public"));
+const lobby = new Lobby();
+
+io.on("connection", (socket: Socket) => {
+  socket.on("disconnect", () => {
+    lobby.remove(socket.id);
+    io.emit("lobby", lobby.serialise());
+  });
+
+  lobby.add(socket.id);
+  io.emit("lobby", lobby.serialise());
+});
 
 // TODO: Sync this with the client!
 // This now exists in 2 places!
@@ -29,7 +45,8 @@ const client = `
     <!-- offscreen text so we have the DOS font in the first frame of the game -->
     <span style="position: absolute; left: -999px; font-family: 'dos';">FONT CACHE</span>
     <canvas id="stage"></canvas>
-    <script src="index.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
 </body>
 </html>
 `;
@@ -38,6 +55,6 @@ app.get("/", (req, res) => {
   res.send(client);
 });
 
-app.listen(PORT, () => {
-  console.log("litsening!");
+server.listen(PORT, () => {
+  console.log(PORT);
 });

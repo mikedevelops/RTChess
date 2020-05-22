@@ -1,14 +1,14 @@
 {
   "compilerOptions": {
     "noImplicitAny": true,
+    "module": "commonjs",
     "outDir": "dist",
     "target": "ES6",
-    "module": "commonjs",
     "strict": true,
     "noUnusedLocals": false, // Re-enable this!
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src/**/*", "levels/**/*"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*"],
+  "exclude": ["src/types/**/*", "node_modules"]
 }

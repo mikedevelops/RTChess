@@ -1,16 +1,18 @@
-import Text from "../Renderer/Text";
-import Vector2 from "../Math/Vector2";
-import Runtime from "../Runtime/Runtime";
-import Unit from "../Math/Unit";
-import Time from "../Time/Time";
-import Color from "../Renderer/Color";
-import Entity from "../Object/Entity";
-import Node from "../Object/Node";
-import { InputEvent } from "../Input/InputDelegator";
-import Tile from "../GameObject/Board/Tile";
-import MathUtils from "../Math/MathUtils";
-import MoveTransaction, { SerialisedMoveTransaction } from '../Transaction/MoveTransaction';
+import Text from '../Renderer/Text';
+import Vector2 from '../Math/Vector2';
+import Runtime from '../Runtime/Runtime';
+import Unit from '../Math/Unit';
+import Time from '../Time/Time';
+import Color from '../Renderer/Color';
+import Entity from '../Object/Entity';
+import Node from '../Object/Node';
+import { InputEvent } from '../Input/InputDelegator';
+import Tile from '../GameObject/Board/Tile';
+import MathUtils from '../Math/MathUtils';
+import { SerialisedMoveTransaction } from '../Transaction/MoveTransaction';
 import { TransactionState } from '../Transaction/Transaction';
+import SocketIOClient from 'socket.io-client';
+import { Lobby } from 'rtchess-core';
 
 export enum DebugFlag {
   FRAMES,
@@ -18,6 +20,7 @@ export enum DebugFlag {
   ENTITY_TREE,
   EVENTS,
   TRANSACTIONS,
+  NETWORK,
 }
 
 /**
@@ -30,7 +33,11 @@ export default class Debugger {
   private fps: number = 0;
   private enabled: boolean = true;
 
-  constructor(private flags: DebugFlag[] = []) {}
+  constructor(
+    private io: SocketIOClient.Socket,
+    private lobby: Lobby,
+    private flags: DebugFlag[] = []
+  ) {}
 
   public toggleEnabled(): void {
     this.enabled = !this.enabled;
@@ -56,6 +63,7 @@ export default class Debugger {
     const padding = new Vector2(Unit.getUnit(0.5), Unit.getUnit(1));
     const fontSize = Unit.getUnit(0.4);
     const newline = fontSize;
+    const tab = fontSize * 4;
     const scene = Runtime.instance.getScene();
     let lineOffsetY = position.y + padding.y;
     let lineOffsetX = position.x + padding.x;
@@ -64,11 +72,22 @@ export default class Debugger {
     ctx.font = Text.getFont(fontSize);
 
     /**
+     * Socket
+     */
+    if (this.hasFlag(DebugFlag.NETWORK)) {
+      ctx.fillText("SOCKET", lineOffsetX, lineOffsetY += newline);
+
+      for (const player of this.lobby.getPlayers()) {
+        ctx.fillText(player.id, lineOffsetX + tab, lineOffsetY += newline);
+      }
+    }
+
+    /**
      * Frames
      */
     if (this.hasFlag(DebugFlag.FRAMES)) {
       const fps = `FPS: ${Math.round(1000 / this.fps)}`;
-      ctx.fillText(fps, lineOffsetX, lineOffsetY);
+      ctx.fillText(fps, lineOffsetX, lineOffsetY += newline * 2);
       ctx.fillText(
         ` | FRAME: ${Runtime.instance.getFrame()}`,
         lineOffsetX + Text.getWidth(fps, ctx.font),
