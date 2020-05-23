@@ -5,7 +5,7 @@ import WillLeave, { instanceofWillLeave } from "../Scene/WillLeave";
 import Node from "../Object/Node";
 import WillDebug, { instanceofWillDebug } from "../Object/WillDebug";
 import WillDraw, { instanceofWillDraw } from "../Object/WillDraw";
-import Runtime, { RuntimeMode } from "../Runtime/Runtime";
+import ClientRuntime, { RuntimeMode } from "../Runtime/ClientRuntime";
 import Color from "../Renderer/Color";
 import Unit from "../Math/Unit";
 import Entity from "../Object/Entity";

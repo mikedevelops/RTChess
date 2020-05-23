@@ -1,14 +1,13 @@
 import { S_SANDBOX } from "./scenes";
 import WillEnter from "./WillEnter";
 import Scene from "./Scene";
-import Vector2 from "../Math/Vector2";
-import Runtime from "../Runtime/Runtime";
-import Board from "../GameObject/Board/Board";
+import { Vector2 } from "rtchess-core";
+import ClientRuntime from "../Runtime/ClientRuntime";
+import DisplayBoard from "../GameObject/Board/DisplayBoard";
 import PlayerInputManager from "../Input/PlayerInputManager";
-import Tile from "../GameObject/Board/Tile";
 
 export default class SandboxScene extends Scene implements WillEnter {
-  private board: Board | null = null;
+  private board: DisplayBoard | null = null;
 
   public getName(): string {
     return S_SANDBOX;
@@ -18,21 +17,25 @@ export default class SandboxScene extends Scene implements WillEnter {
     return false;
   }
 
-  public getBoard(): Board {
+  public getBoard(): DisplayBoard {
     if (this.board === null) {
-      throw new Error("Board is NULL!");
+      throw new Error("DisplayBoard is NULL!");
     }
 
     return this.board;
   }
 
   public enter(): void {
-    const board = new Board();
+    const board = new DisplayBoard();
+    const boardRect = board.getWorldRect();
 
     this.board = board;
-    Runtime.instance.registerInputManager(new PlayerInputManager());
+    ClientRuntime.instance.registerInputManager(new PlayerInputManager());
     this.addChild(board);
 
-    board.getPosition().add(Vector2.unit(1, 4, Tile.SIZE));
+    board.getPosition().add(new Vector2(
+      //(ClientRuntime.instance.getWidth() / 2) - (boardRect.getWidth() / 2),
+      //(ClientRuntime.instance.getHeight() / 2) - (boardRect.getHeight() / 2),
+    ));
   }
 }

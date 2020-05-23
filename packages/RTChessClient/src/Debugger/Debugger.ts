@@ -1,6 +1,5 @@
 import Text from '../Renderer/Text';
-import Vector2 from '../Math/Vector2';
-import Runtime from '../Runtime/Runtime';
+import ClientRuntime from '../Runtime/ClientRuntime';
 import Unit from '../Math/Unit';
 import Time from '../Time/Time';
 import Color from '../Renderer/Color';
@@ -9,15 +8,15 @@ import Node from '../Object/Node';
 import { InputEvent } from '../Input/InputDelegator';
 import Tile from '../GameObject/Board/Tile';
 import MathUtils from '../Math/MathUtils';
-import { SerialisedMoveTransaction } from '../Transaction/MoveTransaction';
-import { TransactionState } from '../Transaction/Transaction';
+import { SerialisedTransaction } from 'rtchess-core';
 import SocketIOClient from 'socket.io-client';
-import { Lobby } from 'rtchess-core';
+import { Vector2, Lobby, TransactionState, transactionState, transactionType } from 'rtchess-core';
+import DebugInputManager from '../Input/DebugInputManager';
 
 export enum DebugFlag {
   FRAMES,
   ENTITY_COUNT,
-  ENTITY_TREE,
+  ENTITIES,
   EVENTS,
   TRANSACTIONS,
   NETWORK,
@@ -34,8 +33,6 @@ export default class Debugger {
   private enabled: boolean = true;
 
   constructor(
-    private io: SocketIOClient.Socket,
-    private lobby: Lobby,
     private flags: DebugFlag[] = []
   ) {}
 
@@ -44,13 +41,19 @@ export default class Debugger {
   }
 
   public getWorldPosition(): Vector2 {
-    return Vector2.unit(1, 1);
+    return Vector2.unit(1, 1, Unit.getUnit(1));
   }
 
-  public start(): void {}
+  public start(): void {
+    ClientRuntime.instance.input.register(new DebugInputManager());
+  }
 
   public update(): void {
     this.sampleFps();
+  }
+
+  public isEnabled(): boolean {
+    return this.enabled;
   }
 
   public draw(): void {
@@ -58,13 +61,13 @@ export default class Debugger {
       return;
     }
 
-    const ctx = Runtime.instance.getRenderingContext();
+    const ctx = ClientRuntime.instance.renderer.getContext();
     const position = this.getWorldPosition();
     const padding = new Vector2(Unit.getUnit(0.5), Unit.getUnit(1));
     const fontSize = Unit.getUnit(0.4);
     const newline = fontSize;
     const tab = fontSize * 4;
-    const scene = Runtime.instance.getScene();
+    const scene = ClientRuntime.instance.getScene();
     let lineOffsetY = position.y + padding.y;
     let lineOffsetX = position.x + padding.x;
 
@@ -72,13 +75,20 @@ export default class Debugger {
     ctx.font = Text.getFont(fontSize);
 
     /**
-     * Socket
+     * Lobby
      */
     if (this.hasFlag(DebugFlag.NETWORK)) {
-      ctx.fillText("SOCKET", lineOffsetX, lineOffsetY += newline);
+      const lobby = ClientRuntime.instance.lobby;
 
-      for (const player of this.lobby.getPlayers()) {
-        ctx.fillText(player.id, lineOffsetX + tab, lineOffsetY += newline);
+      ctx.fillText("SOCKET", lineOffsetX, lineOffsetY += newline);
+      ctx.fillText(ClientRuntime.instance.getSocket().id, lineOffsetX, lineOffsetY += newline);
+
+      lineOffsetY += newline;
+
+      ctx.fillText("LOBBY", lineOffsetX, lineOffsetY += newline);
+
+      for (const player of lobby.getPlayers()) {
+        ctx.fillText(player.getId(), lineOffsetX, lineOffsetY += newline);
       }
     }
 
@@ -89,7 +99,7 @@ export default class Debugger {
       const fps = `FPS: ${Math.round(1000 / this.fps)}`;
       ctx.fillText(fps, lineOffsetX, lineOffsetY += newline * 2);
       ctx.fillText(
-        ` | FRAME: ${Runtime.instance.getFrame()}`,
+        ` | FRAME: ${ClientRuntime.instance.getFrame()}`,
         lineOffsetX + Text.getWidth(fps, ctx.font),
         lineOffsetY
       );
@@ -99,7 +109,7 @@ export default class Debugger {
      * Entities
      */
     if (this.hasFlag(DebugFlag.ENTITY_COUNT)) {
-      const entities = Runtime.instance.getOnScreenEntities();
+      const entities = ClientRuntime.instance.getOnScreenEntities();
 
       /**
        * Entity Count
@@ -114,7 +124,7 @@ export default class Debugger {
     /**
      * Entity Node
      */
-    if (this.hasFlag(DebugFlag.ENTITY_TREE)) {
+    if (this.hasFlag(DebugFlag.ENTITIES)) {
       lineOffsetY += newline;
 
       ctx.fillText(scene.getName(), lineOffsetX, (lineOffsetY += newline));
@@ -141,7 +151,7 @@ export default class Debugger {
      * Events
      */
     if (this.hasFlag(DebugFlag.EVENTS)) {
-      const events = Runtime.instance.getEventHistory();
+      const events = ClientRuntime.instance.getEventHistory();
 
       ctx.fillText("EVENTS", lineOffsetX, (lineOffsetY += newline * 2));
 
@@ -160,14 +170,14 @@ export default class Debugger {
      * Transactions
      */
     if (this.hasFlag(DebugFlag.TRANSACTIONS)) {
-      const transactions = Runtime.instance.getMoveTransactions();
+      const transactions = ClientRuntime.instance.getTransactions();
       const max = 10;
 
       ctx.fillText("TRANSACTIONS", lineOffsetX, (lineOffsetY += newline * 2));
       transactions
         .slice(MathUtils.clamp(transactions.length - max))
         .reverse()
-        .forEach((transaction: SerialisedMoveTransaction, index: number) => {
+        .forEach((transaction: SerialisedTransaction, index: number) => {
           switch (transaction.state) {
             case TransactionState.PENDING:
               ctx.fillStyle = Color.YELLOW.toString();
@@ -183,17 +193,16 @@ export default class Debugger {
               break;
           }
 
-
           ctx.fillText(
             `[${transaction.createdAt.toString()}] ` +
-              `${transaction.type} ` +
-            `(${transaction.piece} ${transaction.from}) ` +
-            `-> ${transaction.to}` +
-            (transaction.resolvedAt === null ?
+            `PLAYER ${transaction.player.id} ` +
+            `${transactionType(transaction.type)} ` +
+            `${transactionState(transaction.state)} ` +
+            (!transaction.resolvedAt ?
               "" :
               ` ${transaction.resolvedAt - transaction.createdAt}ms`),
             lineOffsetX,
-            (lineOffsetY += newline)
+            (lineOffsetY += newline * 2)
           );
         });
     }

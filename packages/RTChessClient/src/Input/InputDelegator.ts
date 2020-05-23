@@ -1,5 +1,5 @@
 import AbstractInputManager from "./AbstractInputManager";
-import Vector2 from "../Math/Vector2";
+import { Vector2 } from 'rtchess-core';
 
 export enum EventType {
   KEY = "KEY",

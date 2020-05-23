@@ -1,19 +1,9 @@
 import "regenerator-runtime/runtime";
 
-import Renderer from "./Renderer/Renderer";
-import Runtime, { RuntimeMode, RuntimeFlag } from "./Runtime/Runtime";
+import ClientRuntime, { RuntimeMode, RuntimeFlag } from "./Runtime/ClientRuntime";
 import InputDelegator from "./Input/InputDelegator";
 import Debugger, { DebugFlag } from "./Debugger/Debugger";
-import SceneManager from "./Scene/SceneManager";
-import SandboxScene from "./Scene/SandboxScene";
 import DebugInputManager from "./Input/DebugInputManager";
-import MoveResolver from "./Runtime/MoveResolver";
-import io from "socket.io-client";
-import { Lobby } from 'rtchess-core';
-
-const socket = io("", {
-  onlyBinaryUpgrades: true
-});
 
 const root = document.getElementById("stage");
 const dpr = window.devicePixelRatio || 1;
@@ -28,23 +18,18 @@ root.width = rect.width * dpr;
 root.height = rect.height * dpr;
 
 const input = new InputDelegator();
-const renderer = new Renderer(root, dpr);
-const moveResolver = new MoveResolver();
-const sceneManager = new SceneManager([new SandboxScene()]);
-const lobby = new Lobby();
-const debug = new Debugger(socket, lobby, [
+const debug = new Debugger([
   DebugFlag.FRAMES,
   DebugFlag.TRANSACTIONS,
+  DebugFlag.ENTITIES,
   DebugFlag.NETWORK,
 ]);
-const runtime = new Runtime(
-  renderer,
-  input,
-  sceneManager,
+const runtime = new ClientRuntime(
+  root,
+  dpr,
   debug,
-  moveResolver,
   RuntimeMode.DEBUG,
-  [RuntimeFlag.SINGLE_PLAYER]
+  [RuntimeFlag.MULTI_PLAYER]
 );
 
 if (!runtime.isProduction()) {
@@ -54,15 +39,18 @@ if (!runtime.isProduction()) {
 // TODO: Some sort of loading state here perhaps?
 // TODO: Read into detecting when the font is loaded...
 
-socket.on("lobby", (players: object) => {
-  lobby.parse(players);
-});
-
 /**
  * Short delay before starting to runtime to ensure
  * fonts have been loaded
  */
-window.setTimeout(() => {
-  runtime.start();
+setTimeout(() => {
+  if (runtime.hasFlag(RuntimeFlag.MULTI_PLAYER)) {
+    runtime.connect();
+    return;
+  }
+
+  if (runtime.hasFlag(RuntimeFlag.SINGLE_PLAYER)) {
+    runtime.start();
+  }
 }, 25);
 

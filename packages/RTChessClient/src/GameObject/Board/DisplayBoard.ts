@@ -2,20 +2,25 @@ import Entity from "../../Object/Entity";
 import WillDraw from "../../Object/WillDraw";
 import WillDebug from "../../Object/WillDebug";
 import Tile from "./Tile";
-import Vector2 from "../../Math/Vector2";
-import { getEntityId } from "../../Runtime/EntityManager";
-import Piece, { PieceOwner } from "../Piece/Piece";
-import Runtime, { RuntimeFlag } from "../../Runtime/Runtime";
+import { Vector2 } from "rtchess-core";
+import Piece from "../Piece/Piece";
+import ClientRuntime, { RuntimeFlag } from "../../Runtime/ClientRuntime";
 import { SortLayer } from "../../Renderer/Renderer";
-import Pawn from "../Piece/Pawn";
+import { Rect } from "rtchess-core";
 
-export default class Board extends Entity implements WillDraw, WillDebug {
+export default class DisplayBoard extends Entity implements WillDraw, WillDebug {
   private tiles: Map<string, Tile> = new Map();
   private pieces: Map<string, Piece> = new Map();
   private takenPieces: Map<string, Piece> = new Map();
   private width: number = 4;
   private height: number = 4;
   private activePiece: Piece | null = null;
+
+  public setState(data: { [index: number]: number }): void {
+  }
+
+  public start(): void {
+  }
 
   public getSortLayer(): SortLayer {
     return SortLayer.BOARD;
@@ -39,6 +44,10 @@ export default class Board extends Entity implements WillDraw, WillDebug {
     return null;
   }
 
+  public getWorldPosition(): Vector2 {
+    return super.getWorldPosition().add(Vector2.unit(0, this.height -1, Tile.SIZE));
+  }
+
   public selectTileAtWorldPosition(position: Vector2): void {
     const tile = this.getTileAtWorldPosition(position);
 
@@ -48,7 +57,7 @@ export default class Board extends Entity implements WillDraw, WillDebug {
 
     const piece = tile.getPiece();
     const canFocusPiece = piece !== null && !piece.isOpponentPiece() ||
-    (piece !== null && Runtime.instance.hasFlag(RuntimeFlag.SINGLE_PLAYER) && Runtime.instance.isDebugMode());
+    (piece !== null && ClientRuntime.instance.hasFlag(RuntimeFlag.SINGLE_PLAYER) && ClientRuntime.instance.isDebugMode());
 
     // If there is no current active piece
     if (this.activePiece === null) {
@@ -64,7 +73,7 @@ export default class Board extends Entity implements WillDraw, WillDebug {
     // If there is an active piece
     } else {
       // determine if we can move to the tile
-      for (const move of Runtime.instance.getAvailableMoves(this.activePiece)) {
+      for (const move of ClientRuntime.instance.getAvailableMoves(this.activePiece)) {
         if (tile.getCoords().equals(move)) {
           this.movePiece(this.activePiece, tile);
           this.activePiece = null;
@@ -85,44 +94,7 @@ export default class Board extends Entity implements WillDraw, WillDebug {
   }
 
   public movePiece(piece: Piece, tile: Tile): void {
-    Runtime.instance.createMoveTransaction(piece, tile);
-  }
-
-  public start(): void {
-    for (let x = 0; x < this.width; x++) {
-      for (let y = 0; y < this.height; y++) {
-        const tile = new Tile(this, new Vector2(x, y));
-        this.tiles.set(tile.getId(), tile);
-        this.addChild(tile);
-      }
-    }
-
-    // TODO: We should define a starting position and then just mirror
-    // it at the other end of the board.
-    //
-    // - IDEA
-    //  - A mode where player can swap (n) piece positions
-    [
-      new Pawn(new Vector2(0, 0)),
-      new Pawn(new Vector2(1, 0)),
-      new Pawn(new Vector2(2, 0)),
-      new Pawn(new Vector2(3, 0)),
-
-      new Pawn(new Vector2(0, 3), PieceOwner.OPPONENT),
-      new Pawn(new Vector2(1, 3), PieceOwner.OPPONENT),
-      new Pawn(new Vector2(2, 3), PieceOwner.OPPONENT),
-      new Pawn(new Vector2(3, 3), PieceOwner.OPPONENT),
-    ].forEach(piece => {
-      const tile = this.getTileAt(piece.getCoords());
-
-      if (tile === null) {
-        throw new Error(`Attempted to place "${piece.getName()}" at ${piece.getPosition().toString()} but there was no Tile`);
-      }
-
-      tile.addPiece(piece);
-      piece.setId(getEntityId().toString());
-      this.pieces.set(piece.getId(), piece);
-    });
+    ClientRuntime.instance.createMoveTransaction(piece, tile);
   }
 
   public getTileAt(position: Vector2): Tile | null {
@@ -145,6 +117,16 @@ export default class Board extends Entity implements WillDraw, WillDebug {
     }
 
     return tile;
+  }
+
+  public getWorldRect(): Rect {
+    const position = this.getWorldPosition();
+    return new Rect(
+      position.y,
+      (this.width * Tile.SIZE) + position.x,
+      position.y + (this.height * Tile.SIZE),
+      position.x
+    );
   }
 
   public getName(): string {

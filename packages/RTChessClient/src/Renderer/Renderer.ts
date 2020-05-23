@@ -3,7 +3,7 @@ import Color from "./Color";
 import WillDraw from "../Object/WillDraw";
 import WillDebug, { instanceofWillDebug } from "../Object/WillDebug";
 import Unit from "../Math/Unit";
-import Runtime, { RuntimeMode } from "../Runtime/Runtime";
+import ClientRuntime, { RuntimeMode } from "../Runtime/ClientRuntime";
 
 // TODO: Implement a fixed/adaptive resolution to support different
 // window sizes
@@ -16,9 +16,8 @@ export enum SortLayer {
 }
 
 export default class Renderer {
-  public ctx: CanvasRenderingContext2D;
-
-  private layers: WillDraw[][] = [];
+  private ctx: CanvasRenderingContext2D;
+  private layers: Map<SortLayer, WillDraw[]> = new Map();
 
   constructor(canvas: HTMLCanvasElement, public dpr: number) {
     const ctx = canvas.getContext("2d");
@@ -26,6 +25,10 @@ export default class Renderer {
     if (ctx === null) throw new Error("Canvas Context not supported!");
 
     this.ctx = ctx;
+  }
+
+  public getContext(): CanvasRenderingContext2D {
+    return this.ctx;
   }
 
   public start() {
@@ -37,16 +40,25 @@ export default class Renderer {
      * Sort layers
      */
     for (const entity of entities) {
-      if (this.layers[entity.getSortLayer()] === undefined) {
-        this.layers[entity.getSortLayer()] = [];
+      const sort = entity.getSortLayer();
+
+      if (!this.layers.has(sort)) {
+        this.layers.set(sort, [entity]);
+        continue;
       }
 
-      this.layers[entity.getSortLayer()].push(entity);
+      const drawables = this.layers.get(sort) as WillDraw[];
+
+      drawables.push(entity);
     }
 
-    for (const layer of this.layers) {
-      for (const entity of layer) {
+    // For each sorting layer in order (lowest first!)
+    for (const layer of [...this.layers.keys()].sort()) {
+      const drawables = this.layers.get(layer) as WillDraw[];
+
+      for (const entity of drawables) {
         this.ctx.save();
+        this.ctx.font = Text.getFont();
         entity.draw();
         this.ctx.restore();
 
@@ -54,24 +66,30 @@ export default class Renderer {
          * Draw Debug things
          */
         if (
-          Runtime.instance.getMode() !== RuntimeMode.PRODUCTION &&
+          ClientRuntime.instance.debug.isEnabled() &&
           instanceofWillDebug(entity)
         ) {
           this.ctx.save();
           this.ctx.font = Text.getFont(Unit.getUnit(0.5));
           this.ctx.fillStyle = Color.DEBUG.toString();
+          this.ctx.strokeStyle = Color.DEBUG.toString();
           (entity as WillDebug).debug();
           this.ctx.restore();
         }
 
-        // Empty srorting layer
-        this.layers[this.layers.indexOf(layer)] = [];
       }
     }
+
+    // TODO: Look at some sort of caching here if we get that desperate for ms
+    this.layers.clear();
   }
 
   public getWidth(): number {
     return this.ctx.canvas.width / this.dpr;
+  }
+
+  public getHeight(): number {
+    return this.ctx.canvas.height / this.dpr;
   }
 
   public clear() {

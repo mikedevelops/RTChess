@@ -1,75 +1,99 @@
-import Player from '../Player/Player';
-import StringBytes from '../Primitives/StringBytes';
+import SerialisedPlayer from '../Player/SerialisedPlayer';
+import Match from '../Match/Match';
+import PlayerCore, { PlayerState } from '../Player/PlayerCore';
+import { SerialisedMatch } from '../Match/SerialisedMatch';
 
-export default class Lobby {
-  private static ID_LENGTH: number = 20;
+export interface SerialisedLobby {
+  players: SerialisedPlayer[];
+}
 
-  private players: { [index: string]: Player } = {};
+export default abstract class Lobby {
+  private players: Map<string, PlayerCore> = new Map();
+  private matches: Map<PlayerCore, Match> = new Map();
 
   public getPlayerCount(): number {
     return Object.keys(this.players).length;
   }
 
-  public getPlayers(): Player[] {
-    const players: Player[] = [];
-
-    for (const id in this.players) {
-      if (!this.players.hasOwnProperty(id)) {
-        continue;
-      }
-
-      const socket = this.players[id];
-
-      players.push({ id: socket.id });
-    }
-
-    return players;
+  public getPlayers(): PlayerCore[] {
+    return [...this.players.values()];
   }
 
-  public add(id: string): void {
-    if (this.players[id] !== undefined) {
-      throw new Error("Attempted to add the same socket twice!");
+  public addPlayer(player: PlayerCore): void {
+    if (this.players.has(player.getId())) {
+      throw new Error("Trying to add player to a lobby they are already in!");
     }
 
-    this.players[id] = { id };
+    this.players.set(player.getId(), player);
   }
 
-  public remove(id: string): void {
-    if (this.players[id] === undefined) {
+  public updatePlayer(id: string, state: PlayerState): PlayerCore {
+    if (!this.players.has(id)) {
+      throw new Error("Trying to update a player that does not exist!");
+    }
+
+    const player = this.players.get(id) as PlayerCore;
+
+    player.setState(state);
+
+    return player;
+  }
+
+  public removePlayer(player: PlayerCore): void {
+    if (!this.players.has(player.getId()) === undefined) {
       throw new Error("Attempted to remove a socket that was not in the lobby!");
     }
 
-    delete this.players[id];
-  }
+    const match = this.matches.get(player);
 
-  public parse(bytes: object): void {
-    const data = Object.values(bytes);
-
-    // Parse will fully replace the players
-    this.players = {};
-
-    for (let b = 0; b < data.length; b += Lobby.ID_LENGTH) {
-      const bytes = data.slice(b, b + Lobby.ID_LENGTH);
-      const id = StringBytes.toUTF8String(bytes);
-
-      this.players[id] = { id };
-    }
-  }
-
-  public serialise(): Uint8Array {
-    let data: number[] = [];
-
-    for (const id in this.players) {
-      if (!this.players.hasOwnProperty(id)) {
-        continue;
-      }
-
-      // NOTE: slicing at 20 chars here so it's consistent-ish
-      // TODO: Check how long an id _can_ be with socket io, or just create our own
-      data = [...data, ...id.slice(0, Lobby.ID_LENGTH).split("").map(s => s.charCodeAt(0))];
+    if (match === undefined) {
+      return;
     }
 
-    return Uint8Array.from(data);
+    for (const player of match.getPlayers()) {
+      player.setState(PlayerState.CONNECTED);
+      this.matches.delete(player);
+    }
+
+    this.players.delete(player.getId());
+  }
+
+  // TODO: a place to look to optimize
+  public update(players: PlayerCore[]): void {
+    this.players.clear();
+
+    for (const player of players) {
+      this.players.set(player.getId(), player);
+    }
+  };
+
+  public serialise(): SerialisedLobby {
+    return {
+      players: [...this.players.values()].map(p => p.serialise())
+    };
+  }
+
+  public getNewMatches(): Match[] {
+    const matches: Match[] = [];
+    const connected = [...this.players.values()].filter(p => p.getState() === PlayerState.CONNECTED);
+
+    if (connected.length < 2) {
+      return [];
+    }
+
+    const sliced = connected.slice(0, Math.floor(connected.length / 2) + 1);
+
+    for (let i = 0; i < sliced.length; i += 2) {
+      const playerOne = sliced[i];
+      const playerTwo = sliced[i + 1];
+      const match = new Match(playerOne, playerTwo);
+
+      matches.push(match);
+      this.matches.set(playerOne, match);
+      this.matches.set(playerTwo, match);
+    }
+
+    return matches;
   }
 }
 

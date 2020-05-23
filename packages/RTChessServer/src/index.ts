@@ -1,25 +1,20 @@
 import express from "express";
 import http from "http";
 import socketio, { Socket } from "socket.io";
-import { Lobby } from "rtchess-core";
+import ServerRuntime from './Runtime/ServerRuntime';
+import ServerLobby from './Lobby/ServerLobby';
 
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
 const PORT = process.env.PORT || 8080;
 
-app.use(express.static("dist/public"));
-const lobby = new Lobby();
+app.use(express.static("../RTChessClient/dist"));
+app.use(express.static("../RTChessClient/fonts"));
+const lobby = new ServerLobby();
+const runtime = new ServerRuntime(io, lobby);
 
-io.on("connection", (socket: Socket) => {
-  socket.on("disconnect", () => {
-    lobby.remove(socket.id);
-    io.emit("lobby", lobby.serialise());
-  });
-
-  lobby.add(socket.id);
-  io.emit("lobby", lobby.serialise());
-});
+runtime.start();
 
 // TODO: Sync this with the client!
 // This now exists in 2 places!
@@ -34,7 +29,7 @@ const client = `
     <style>
         @font-face {
             font-family: "dos";
-            src: url("../fonts/Perfect DOS VGA 437.ttf")
+            src: url("Perfect DOS VGA 437.ttf")
         }
 
         * { margin: 0; padding: 0; }
@@ -46,7 +41,7 @@ const client = `
     <span style="position: absolute; left: -999px; font-family: 'dos';">FONT CACHE</span>
     <canvas id="stage"></canvas>
     <script src="/socket.io/socket.io.js"></script>
-    <script src="client.js"></script>
+    <script src="index.js"></script>
 </body>
 </html>
 `;

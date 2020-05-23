@@ -1,8 +1,8 @@
 import AbstractInputManager from "./AbstractInputManager";
 import { InputEvent } from "./InputDelegator";
 import Piece from "../GameObject/Piece/Piece";
-import Runtime from "../Runtime/Runtime";
-import Vector2 from "../Math/Vector2";
+import ClientRuntime from "../Runtime/ClientRuntime";
+import { Vector2 } from "rtchess-core";
 
 enum MouseButton {
   LEFT = 0,
@@ -15,7 +15,7 @@ export default class PlayerInputManager extends AbstractInputManager {
     events.forEach((event: InputEvent) => {
       switch(parseInt(event.target, 10)) {
         case MouseButton.LEFT:
-          Runtime.instance.getBoard().selectTileAtWorldPosition(event.position);
+          ClientRuntime.instance.getBoard().selectTileAtWorldPosition(event.position);
           return;
       }
     });

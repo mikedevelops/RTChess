@@ -1,5 +1,5 @@
 import Unit from "../Math/Unit";
-import Runtime from "../Runtime/Runtime";
+import ClientRuntime from "../Runtime/ClientRuntime";
 
 export default class Text {
   public static FONT_SIZE = Unit.getUnit(0.75);
@@ -28,7 +28,7 @@ export default class Text {
       return Text.FONT_TRACKING;
     }
 
-    const ctx = Runtime.instance.getRenderingContext();
+    const ctx = ClientRuntime.instance.renderer.getContext();
 
     ctx.save();
     ctx.font = font;

@@ -1,7 +1,7 @@
 import Entity from "./Entity";
-import Vector2 from "../Math/Vector2";
+import { Vector2 } from "rtchess-core";
 import Tile from "../GameObject/Board/Tile";
-import Rect from "../Primitives/Rect";
+import { Rect } from "rtchess-core";
 
 export default abstract class GridObject extends Entity {
   constructor(protected coords: Vector2) {

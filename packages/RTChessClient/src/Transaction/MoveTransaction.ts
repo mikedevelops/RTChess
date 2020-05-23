@@ -1,23 +1,18 @@
-import Transaction, { SerialisedTransaction, TransactionType } from './Transaction';
 import Tile from "../GameObject/Board/Tile";
 import Piece from "../GameObject/Piece/Piece";
-import Board from "../GameObject/Board/Board";
-
-export interface SerialisedMoveTransaction extends SerialisedTransaction {
-  createdAt: number;
-  piece: string;
-  from: string;
-  to: string;
-}
+import DisplayBoard from "../GameObject/Board/DisplayBoard";
+import Transaction from './Transaction';
+import { TransactionType, SerialisedMoveTransaction, PlayerCore } from 'rtchess-core';
 
 export default class MoveTransaction extends Transaction {
   constructor(
     createdAt: number,
-    private board: Board,
+    player: PlayerCore,
+    private board: DisplayBoard,
     private piece: Piece,
     private tile: Tile
   ) {
-    super(createdAt);
+    super(createdAt, player);
   }
 
   public serialise(): SerialisedMoveTransaction {
@@ -27,8 +22,9 @@ export default class MoveTransaction extends Transaction {
       to: this.tile.getCoords().toString(),
       state: this.state,
       type: this.getType(),
-      createdAt: this.createdAt,
-      resolvedAt: this.resolvedAt,
+      createdAt: this.getCreatedAt(),
+      resolvedAt: this.getResolvedAt(),
+      player: this.getPlayer().serialise(),
     };
   }
 

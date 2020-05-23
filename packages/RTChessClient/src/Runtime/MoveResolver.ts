@@ -1,7 +1,7 @@
-import Vector2 from "../Math/Vector2";
+import { Vector2 } from "rtchess-core";
 import Piece from "../GameObject/Piece/Piece";
 import Pawn from "../GameObject/Piece/Pawn";
-import Runtime from "../Runtime/Runtime";
+import ClientRuntime from "./ClientRuntime";
 
 import { PieceType } from "../GameObject/Piece/Piece";
 
@@ -20,7 +20,7 @@ export default class MoveResolver {
   }
 
   private getAvailableMovesForPawn(piece: Pawn): Vector2[] {
-    const board = Runtime.instance.getBoard();
+    const board = ClientRuntime.instance.getBoard();
     const position = piece.getCoords();
     const opponentPiece = piece.isOpponentPiece();
     const moves = [];

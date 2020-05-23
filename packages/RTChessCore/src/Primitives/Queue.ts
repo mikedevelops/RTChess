@@ -1,9 +1,7 @@
-// TODO: Parcel is not detecting changes in this file? why?
-
 export default class Queue<T> {
   constructor(private items: T[] = []) {}
 
-  public empty(): void {
+  public clear(): void {
     this.items = [];
   }
 
@@ -29,6 +27,10 @@ export default class Queue<T> {
     }
 
     return this.items[0];
+  }
+
+  public has(item: T): boolean {
+    return this.items.find(i => i === item) !== undefined;
   }
 
   public toArray(): T[] {

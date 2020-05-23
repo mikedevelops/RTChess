@@ -1,11 +1,11 @@
-import Vector2 from "../../Math/Vector2";
-import GridObject from "../../Object/GridObject";
-import WillDebug from "../../Object/WillDebug";
-import WillDraw from "../../Object/WillDraw";
-import Tile from "../Board/Tile";
-import Color from "../../Renderer/Color";
-import Runtime from "../../Runtime/Runtime";
-import { SortLayer } from "../../Renderer/Renderer";
+import GridObject from '../../Object/GridObject';
+import ClientRuntime from '../../Runtime/ClientRuntime';
+import WillDraw from '../../Object/WillDraw';
+import { SortLayer } from '../../Renderer/Renderer';
+import WillDebug from '../../Object/WillDebug';
+import Color from '../../Renderer/Color';
+import Tile from '../Board/Tile';
+import { Vector2, Rect } from 'rtchess-core';
 
 export enum PieceType {
   PAWN
@@ -92,7 +92,7 @@ export default abstract class Piece extends GridObject implements WillDebug, Wil
       const worldPosition = position
         .clone()
         .multiply(Tile.SIZE, -Tile.SIZE)
-        .add(Runtime.instance.getBoard().getWorldPosition());
+        .add(ClientRuntime.instance.getBoard().getWorldPosition());
 
       ctx.fillRect(worldPosition.x, worldPosition.y, Tile.SIZE, Tile.SIZE);
     }
@@ -101,7 +101,14 @@ export default abstract class Piece extends GridObject implements WillDebug, Wil
   }
 
   public getMoves(): Vector2[] {
-    return Runtime.instance.getAvailableMoves(this);
+    return ClientRuntime.instance.getAvailableMoves(this);
+  }
+
+  public getWorldRect(): Rect {
+    const position = this.getWorldPosition();
+    return new Rect(
+      position.y, position.x + Tile.SIZE, position.y + Tile.SIZE, position.x
+    );
   }
 }
 

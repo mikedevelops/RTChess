@@ -1,13 +1,34 @@
-import Unit from "./Unit";
-import Rect from "../Primitives/Rect";
+import Rect from './Rect';
 
 interface Coord {
   x: number;
   y: number;
 }
 
+export type SerialisedVector2 = [number,number];
+
 export default class Vector2 {
-  constructor(public x: number = 0, public y: number = 0) {}
+  constructor(private _x: number = 0, private _y: number = 0) {}
+
+  public serialise(): SerialisedVector2 {
+    return [this.x, this.y];
+  }
+
+  get x(): number {
+    return Math.round(this._x);
+  }
+
+  set x(x: number) {
+    this._x = x;
+  }
+
+  set y(y: number) {
+    this._y = y;
+  }
+
+  get y(): number {
+    return Math.round(this._y);
+  }
 
   public static from(coord: Coord): Vector2 {
     return new Vector2(coord.x, coord.y);
@@ -36,9 +57,9 @@ export default class Vector2 {
   public static unit(
     x: number,
     y: number,
-    unit: number = Unit.getUnit(1)
+    unit: number
   ): Vector2 {
-    return new Vector2(x, y).multiply(unit);
+    return new Vector2(x * unit, y * unit);
   }
 
   public isInside(rect: Rect): boolean {

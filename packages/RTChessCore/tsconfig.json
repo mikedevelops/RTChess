@@ -9,6 +9,6 @@
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["src/types/**/*", "node_modules"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
 }

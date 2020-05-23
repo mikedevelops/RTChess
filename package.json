@@ -5,12 +5,14 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:server": "npm run build:client && npm run build:server && npm run prepare:assets && concurrently \"npm:watch:client\" \"npm:watch:server\" \"npm:watch:core\"",
-    "build:client": "parcel build ./packages/RTChessClient/src/index.ts --out-dir ./packages/RTChessServer/dist/public --out-file client.js",
-    "watch:client": "parcel watch ./packages/RTChessClient/src/index.ts --out-dir ./packages/RTChessServer/dist/public --out-file client.js",
+    "start:server": "cd packages/RTChessServer && npm run start",
+    "watch:client": "cd packages/RTChessClient && npm run watch",
+    "compile:client": "cd packages/RTChessClient && npm run compile",
     "build:server": "cd packages/RTChessServer && npm run build",
     "watch:server": "cd packages/RTChessServer && npm run watch",
+    "compile:server": "cd packages/RTChessServer && npm run compile",
     "watch:core": "cd packages/RTChessCore && npm run watch",
+    "compile:core": "cd packages/RTChessCore && npm run compile",
     "prepare:assets": "mkdir -p packages/RTChessServer/dist/public/fonts && cp \"packages/RTChessClient/fonts/Perfect DOS VGA 437.ttf\" \"packages/RTChessServer/dist/public/fonts/Perfect DOS VGA 437.ttf\""
   },
   "keywords": [],

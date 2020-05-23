@@ -4,17 +4,23 @@ import SceneManager from "../Scene/SceneManager";
 import Debugger from "../Debugger/Debugger";
 import Time from "../Time/Time";
 import Scene from "../Scene/Scene";
-import Vector2 from "../Math/Vector2";
+import { Vector2 } from "rtchess-core";
 import Entity from "../Object/Entity";
 import AbstractInputManager from "../Input/AbstractInputManager";
 import { InputEvent } from "../Input/InputDelegator";
-import Board from "../GameObject/Board/Board";
+import DisplayBoard from "../GameObject/Board/DisplayBoard";
 import Piece from "../GameObject/Piece/Piece";
 import MoveResolver from "./MoveResolver";
 import TransactionManager from "../Transaction/TransactionManager";
 import Tile from "../GameObject/Board/Tile";
-import MoveTransaction, { SerialisedMoveTransaction } from '../Transaction/MoveTransaction';
-import { SerialisedTransaction } from '../Transaction/Transaction';
+import MoveTransaction from '../Transaction/MoveTransaction';
+import { PlayerState, SerialisedMatch, SerialisedTransaction, Runtime, TransactionType, PlayerCore, Events, SerialisedLobby, SerialisedPlayer } from 'rtchess-core';
+import Transaction from '../Transaction/Transaction';
+import io from "socket.io-client";
+import Socket = SocketIOClient.Socket;
+import ClientPlayer from '../Lobby/ClientPlayer';
+import LobbyScene from '../Scene/LobbyScene';
+import ClientLobby from '../Lobby/ClientLobby';
 
 export enum RuntimeMode {
   STEPPED,
@@ -28,30 +34,81 @@ export enum RuntimeFlag {
   MULTI_PLAYER
 }
 
-export default class Runtime {
+export default class ClientRuntime extends Runtime {
   private frame: number = 0;
   private lastFrameTime: number = 0;
-  private updateWithContext: (this: Runtime) => void;
-  private transactionManager: TransactionManager = new TransactionManager();
+  private player: PlayerCore | null = null;
+  private readonly updateWithContext: (this: ClientRuntime) => void;
 
-  public static instance: Runtime;
+  public renderer: Renderer;
+  public input: InputDelegator;
+  public sceneManager: SceneManager;
+  public moveResolver: MoveResolver;
+  public transactionManager: TransactionManager;
+  public socket: Socket | null = null;
+  public lobby: ClientLobby;
 
-  // TODO: Why are these injected? Do they really need to be?
+  // Singleton
+  public static instance: ClientRuntime;
+
   constructor(
-    private renderer: Renderer,
-    private input: InputDelegator,
-    private sceneManager: SceneManager,
-    private debug: Debugger,
-    private moveResolver: MoveResolver,
+    canvas: HTMLCanvasElement,
+    devicePixelRatio: number,
+    public debug: Debugger,
     private mode: RuntimeMode = RuntimeMode.PRODUCTION,
     private flags: RuntimeFlag[] = []
   ) {
-    if (Runtime.instance !== undefined) {
-      throw new Error("Attempted to create another Runtime");
+    super();
+
+    if (ClientRuntime.instance !== undefined) {
+      throw new Error("Attempted to create another ClientRuntime");
     }
 
-    Runtime.instance = this;
+    ClientRuntime.instance = this;
+
+    this.renderer = new Renderer(canvas, devicePixelRatio);
+    this.input = new InputDelegator();
+    this.sceneManager = new SceneManager([new LobbyScene()]);
+    this.moveResolver = new MoveResolver();
+    this.transactionManager = new TransactionManager();
+    this.lobby = new ClientLobby();
+
     this.updateWithContext = this.update.bind(this);
+  }
+
+  public connect(): void {
+    this.socket = io();
+    this.socket.on("connect", () => {
+      this.player = new ClientPlayer(this.getSocket().id);
+      this.lobby.addPlayer(this.player);
+      this.start();
+    });
+
+    this.socket.on(Events.LobbyEvent.PUBLISH_UPDATE, (lobby: SerialisedLobby) => {
+      this.lobby.update(lobby.players.map((p: SerialisedPlayer) =>
+        new ClientPlayer(p.id, p.state)));
+    });
+
+    this.socket.on(Events.MatchEvent.MATCHED, (match: SerialisedMatch) => {
+      // TODO: We might want to put this behind an input
+      // AUTO READY
+
+      setTimeout(() => {
+        this.getSocket().emit(Events.MatchEvent.READY, this.getPlayer().serialise());
+      }, 500);
+    });
+
+    this.socket.on(Events.MatchEvent.PUBLISH_UPDATE, (match: SerialisedMatch) => {
+
+    });
+  }
+
+  public getSocket(): Socket {
+    if (this.socket === null) {
+      throw new Error("Socket is null!");
+    }
+
+    return this.socket;
   }
 
   public isDebugMode(): boolean {
@@ -102,31 +159,14 @@ export default class Runtime {
       this.enableSteppedMode();
     }
 
-    /**
-     * Start Input Manager
-     */
     this.input.listen();
-
-    /**
-     * Start Renderer
-     */
     this.renderer.start();
-
-    /**
-     * Start Scene Manager
-     */
     this.sceneManager.start();
 
-    /**
-     * Start Debugger
-     */
     if (this.mode !== RuntimeMode.PRODUCTION) {
       this.debug.start();
     }
 
-    /**
-     * Start Update
-     */
     this.lastFrameTime = Date.now();
     this.update();
   }
@@ -134,47 +174,20 @@ export default class Runtime {
   private update() {
     const now = Date.now();
 
-    /**
-     * Update frame delta
-     */
     Time.delta = now - this.lastFrameTime;
     this.lastFrameTime = now;
 
-    /**
-     * Update Input Manager
-     */
     this.input.update();
-
-    /**
-     * Update Transactions
-     */
     this.transactionManager.update();
-
-    /**
-     * Update Scene Manager
-     */
     this.sceneManager.update();
 
-    /**
-     * Update debugger
-     */
     if (this.mode !== RuntimeMode.PRODUCTION) {
       this.debug.update();
     }
 
-    /**
-     * Clear Renderer
-     */
     this.renderer.clear();
-
-    /**
-     * Draw Scene
-     */
     this.renderer.draw(this.sceneManager.getDrawableEntities());
 
-    /**
-     * Draw Debugger
-     */
     if (this.mode !== RuntimeMode.PRODUCTION) {
       this.debug.draw();
     }
@@ -202,10 +215,6 @@ export default class Runtime {
     return this.frame;
   }
 
-  public getRenderingContext(): CanvasRenderingContext2D {
-    return this.renderer.ctx;
-  }
-
   public getScene(): Scene {
     return this.sceneManager.getScene();
   }
@@ -218,8 +227,8 @@ export default class Runtime {
     return this.flags.find((f) => f === flag) !== undefined;
   }
 
-  public getMoveTransactions(): SerialisedMoveTransaction[] {
-    return this.transactionManager.getMoveTransactions();
+  public getTransactions(): SerialisedTransaction[] {
+    return this.transactionManager.getHistory();
   }
 
   public createMoveTransaction(
@@ -227,9 +236,19 @@ export default class Runtime {
     target: Tile,
   ): MoveTransaction {
     return this.transactionManager.createMoveTransaction(
+      Date.now(),
+      this.getPlayer(),
       this.getBoard(),
       piece,
       target
+    );
+  }
+
+  public createInitialiseTransaction(): Transaction {
+    return this.transactionManager.create(
+      Date.now(),
+      this.getPlayer(),
+      TransactionType.INITIALISE
     );
   }
 
@@ -237,14 +256,22 @@ export default class Runtime {
     this.debug.toggleEnabled();
   }
 
-  public getBoard(): Board {
+  public getBoard(): DisplayBoard {
     const scene = this.getScene();
 
     if (scene.getName() === "S_SANDBOX") {
-      return (scene as any).getBoard() as Board;
+      return (scene as any).getBoard() as DisplayBoard;
     }
 
     throw new Error("Cannot get board!");
+  }
+
+  public getPlayer(): PlayerCore {
+    if (this.player === null) {
+      throw new Error("Cannot get PlayerCore!");
+    }
+
+    return this.player;
   }
 
   public getAvailableMoves(piece: Piece): Vector2[] {

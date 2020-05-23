@@ -1,25 +1,10 @@
-export enum TransactionType {
-  MOVE = "MOVE",
-}
-
-export enum TransactionState {
-  PENDING = "PENDING",
-  COMPLETE = "COMPLETE",
-  REJECTED = "REJECTED",
-}
-
-export interface SerialisedTransaction {
-  createdAt: number;
-  resolvedAt: number | null;
-  state: TransactionState;
-  type: TransactionType;
-}
+import { SerialisedTransaction, TransactionState, TransactionType, PlayerCore } from "rtchess-core";
 
 export default abstract class Transaction {
   protected state: TransactionState = TransactionState.PENDING;
   protected resolvedAt: null | number = null;
 
-  protected constructor(protected createdAt: number) {}
+  constructor(protected createdAt: number, protected player: PlayerCore) {}
 
   public abstract getType(): TransactionType;
   public abstract resolve(): Promise<boolean>;
@@ -27,6 +12,10 @@ export default abstract class Transaction {
 
   public getState(): TransactionState {
     return this.state;
+  }
+
+  public getPlayer(): PlayerCore {
+    return this.player;
   }
 
   public setResolved(resolved: boolean): void {

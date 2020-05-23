@@ -6,6 +6,7 @@ export default class Color {
   public static DEBUG: Color = new Color(0, 255, 255);
   public static YELLOW: Color = new Color(255, 255, 0);
   public static BLUE: Color = new Color(0, 0, 255);
+  public static ORANGE: Color = new Color(254, 110, 0);
 
   constructor(
     public red: number,

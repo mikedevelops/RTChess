@@ -2,10 +2,12 @@
   "name": "rtchess-core",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/exports.js",
-  "types": "dist/exports.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "watch": "tsc --watch --declarationDir dist --declaration",
+    "watch": "tsc --watch --declaration --declarationMap",
+    "compile": "tsc --watch --noEmit",
+    "build": "tsc --declaration",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

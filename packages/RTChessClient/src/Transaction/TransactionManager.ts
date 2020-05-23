@@ -1,42 +1,57 @@
-import Transaction, { SerialisedTransaction } from './Transaction';
 import Piece from '../GameObject/Piece/Piece';
 import Tile from '../GameObject/Board/Tile';
-import Board from '../GameObject/Board/Board';
-import MoveTransaction, { SerialisedMoveTransaction } from './MoveTransaction';
+import DisplayBoard from '../GameObject/Board/DisplayBoard';
+import MoveTransaction from './MoveTransaction';
+import Transaction from './Transaction';
+import InitialiseTransaction from './InitialiseTransaction';
+import Socket = SocketIOClient.Socket;
+import { SerialisedTransaction, PlayerCore, TransactionType } from 'rtchess-core';
 
 export default class TransactionManager {
   // TODO: benchmark string vs number key
   private transactions: Transaction[] = [];
   private history: SerialisedTransaction[] = [];
 
-  public createMoveTransaction(board: Board, piece: Piece, tile: Tile): MoveTransaction {
-    const createdAt = Date.now();
-    const transaction = new MoveTransaction(createdAt, board, piece, tile);
+  //constructor(private socket: Socket) {}
+
+  public create(createdAt: number, player: PlayerCore, type: TransactionType): Transaction {
+    switch(type) {
+      case TransactionType.INITIALISE: {
+        const transaction = new InitialiseTransaction(createdAt, player);
+
+        this.transactions.push(transaction);
+
+        return transaction;
+      }
+      default:
+        throw new Error("Cannot create transaction!");
+    }
+  }
+
+  public createMoveTransaction(
+    createdAt: number,
+    player: PlayerCore,
+    board: DisplayBoard,
+    piece: Piece,
+    tile: Tile
+  ): MoveTransaction {
+    const transaction = new MoveTransaction(createdAt, player, board, piece, tile);
 
     this.transactions.push(transaction);
 
     return transaction;
   }
 
-  public getMoveTransactions(): SerialisedMoveTransaction[] {
-    const moves: SerialisedMoveTransaction[] = [];
-
-    for (const transaction of this.history) {
-        // TODO: type guard here eventually
-        moves.push(transaction as SerialisedMoveTransaction);
-    }
-
-    return moves;
+  public getHistory(): SerialisedTransaction[] {
+    return this.history;
   }
 
   public update(): void {
-    for (const transaction of this.transactions) {
-      transaction.resolve().then(resolved => {
-        transaction.setResolved(resolved);
-        this.updateHistory(transaction);
-      });
+    if (this.transactions.length === 0) {
+      return;
     }
 
+    //this.socket.emit("client:transactions", this.transactions.map(t => t.serialise()));
     this.clear();
   }
 
@@ -54,7 +69,7 @@ export default class TransactionManager {
   }
 
   private clear(): void {
-    this.history = this.history.concat(this.transactions.map(t => t.serialise()));
+    this.history = this.history.concat(this.transactions.map((t: Transaction) => t.serialise()));
     this.transactions = [];
   }
 }

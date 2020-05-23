@@ -1,0 +1,9 @@
+export enum LobbyEvent {
+  PUBLISH_UPDATE = "SERVER:LOBBY:UPDATE",
+}
+
+export enum MatchEvent {
+  MATCHED = "SERVER:MATCH:MATCHED",
+  READY = "SERVER:MATCH:READY",
+  PUBLISH_UPDATE = "SERVER:MATCH:UPDATE",
+}

@@ -1,15 +1,15 @@
 import WillDebug from "../../Object/WillDebug";
 import WillDraw from "../../Object/WillDraw";
-import Vector2 from "../../Math/Vector2";
-import Runtime from "../../Runtime/Runtime";
+import { Vector2 } from "rtchess-core";
+import ClientRuntime from "../../Runtime/ClientRuntime";
 import { SortLayer } from "../../Renderer/Renderer";
 import Color from "../../Renderer/Color";
 import Unit from "../../Math/Unit";
 import Text from "../../Renderer/Text";
 import Entity from "../../Object/Entity";
-import Rect from "../../Primitives/Rect";
+import { Rect } from "rtchess-core";
 import Piece from "../Piece/Piece";
-import Board from "../Board/Board";
+import DisplayBoard from "./DisplayBoard";
 
 const NAME = "TILE";
 
@@ -25,7 +25,7 @@ export default class Tile extends Entity implements WillDebug, WillDraw {
 
   private piece: Piece | null = null;
 
-  constructor(private board: Board, private coords: Vector2) {
+  constructor(private board: DisplayBoard, private coords: Vector2) {
     super();
   }
 
@@ -46,7 +46,7 @@ export default class Tile extends Entity implements WillDebug, WillDraw {
   }
 
   public draw(): void {
-    const ctx = Runtime.instance.getRenderingContext();
+    const ctx = ClientRuntime.instance.renderer.getContext();
     const position = this.getWorldPosition();
 
     ctx.save();
@@ -99,7 +99,7 @@ export default class Tile extends Entity implements WillDebug, WillDraw {
   public update(): void {}
 
   public debug(): void {
-    const ctx = Runtime.instance.getRenderingContext();
+    const ctx = ClientRuntime.instance.renderer.getContext();
     const position = this.getWorldPosition();
 
     ctx.save();
@@ -127,6 +127,13 @@ export default class Tile extends Entity implements WillDebug, WillDraw {
       position.x + Tile.SIZE,
       position.y + Tile.SIZE,
       position.x
+    );
+  }
+
+  public getWorldRect(): Rect {
+    const position = this.getWorldPosition();
+    return new Rect(
+      position.y, position.x + Tile.SIZE, position.y + Tile.SIZE, position.x
     );
   }
 }

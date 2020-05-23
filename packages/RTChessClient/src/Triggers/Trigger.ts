@@ -1,7 +1,7 @@
 import Entity from "../Object/Entity";
-import Vector2 from "../Math/Vector2";
+import { Vector2 } from "rtchess-core";
 import WillDebug from "../Object/WillDebug";
-import Runtime from "../Runtime/Runtime";
+import ClientRuntime from "../Runtime/ClientRuntime";
 import Tile from "../GameObject/Board/Tile";
 import Color from "../Renderer/Color";
 import GridObject from "../Object/GridObject";
@@ -21,7 +21,7 @@ export default abstract class Trigger extends GridObject implements WillDebug {
   }
 
   public debug(): void {
-    const ctx = Runtime.instance.getRenderingContext();
+    const ctx = ClientRuntime.instance.renderer.getContext();
     const position = this.getWorldPosition();
     const size = 0.5;
     const offset = ((1 - size) / 2) * Tile.SIZE;

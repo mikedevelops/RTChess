@@ -1,6 +1,6 @@
-import Vector2 from "../../Math/Vector2";
+import { Vector2 } from "rtchess-core";
 import Piece, { PieceType, PieceOwner } from "./Piece";
-import Runtime from "../../Runtime/Runtime";
+import ClientRuntime from "../../Runtime/ClientRuntime";
 import Color from "../../Renderer/Color";
 
 export default class Pawn extends Piece {
@@ -20,7 +20,7 @@ export default class Pawn extends Piece {
   }
 
   public draw(): void {
-    const ctx = Runtime.instance.getRenderingContext();
+    const ctx = ClientRuntime.instance.renderer.getContext();
     const position = this.getWorldPosition();
     const rect = this.getTileRect();
 
