@@ -1,43 +1,41 @@
-import Renderer from "../Renderer/Renderer";
-import InputDelegator from "../Input/InputDelegator";
-import SceneManager from "../Scene/SceneManager";
-import Debugger from "../Debugger/Debugger";
-import Time from "../Time/Time";
-import Scene from "../Scene/Scene";
-import { Vector2 } from "rtchess-core";
-import Entity from "../Object/Entity";
-import AbstractInputManager from "../Input/AbstractInputManager";
-import { InputEvent } from "../Input/InputDelegator";
-import DisplayBoard from "../GameObject/Board/DisplayBoard";
-import Piece from "../GameObject/Piece/Piece";
-import MoveResolver from "./MoveResolver";
-import TransactionManager from "../Transaction/TransactionManager";
-import Tile from "../GameObject/Board/Tile";
+import Renderer from '../Renderer/Renderer';
+import InputDelegator, { InputEvent } from '../Input/InputDelegator';
+import SceneManager from '../Scene/SceneManager';
+import Debugger from '../Debugger/Debugger';
+import Time from '../Time/Time';
+import Scene from '../Scene/Scene';
+import { PlayerState, SerialisedPlayer, Events, Logger, Runtime, SerialisedLobby, SerialisedTransaction, TransactionType, Vector2 } from 'rtchess-core';
+import Entity from '../Object/Entity';
+import AbstractInputManager from '../Input/AbstractInputManager';
+import DisplayBoard from '../GameObject/Board/DisplayBoard';
+import Piece from '../GameObject/Piece/Piece';
+import MoveResolver from './MoveResolver';
+import TransactionManager from '../Transaction/TransactionManager';
+import Tile from '../GameObject/Board/Tile';
 import MoveTransaction from '../Transaction/MoveTransaction';
-import { PlayerState, SerialisedMatch, SerialisedTransaction, Runtime, TransactionType, PlayerCore, Events, SerialisedLobby, SerialisedPlayer } from 'rtchess-core';
 import Transaction from '../Transaction/Transaction';
-import io from "socket.io-client";
-import Socket = SocketIOClient.Socket;
+import io from 'socket.io-client';
 import ClientPlayer from '../Lobby/ClientPlayer';
 import LobbyScene from '../Scene/LobbyScene';
 import ClientLobby from '../Lobby/ClientLobby';
+import Socket = SocketIOClient.Socket;
 
 export enum RuntimeMode {
-  STEPPED,
-  DEBUG,
-  PRODUCTION,
+  STEPPED = "STEPPED",
+  DEBUG = "DEBUG",
+  PRODUCTION = "PRODUCTION",
 }
 
 export enum RuntimeFlag {
-  CONTROL_PLAYER,
-  SINGLE_PLAYER,
-  MULTI_PLAYER
+  CONTROL_PLAYER= "CONTROL_PLAYER",
+  SINGLE_PLAYER = "SINGLE_PLAYER",
+  MULTI_PLAYER = "MULTI_PLAYER",
 }
 
 export default class ClientRuntime extends Runtime {
   private frame: number = 0;
   private lastFrameTime: number = 0;
-  private player: PlayerCore | null = null;
+  private player: ClientPlayer | null = null;
   private readonly updateWithContext: (this: ClientRuntime) => void;
 
   public renderer: Renderer;
@@ -47,6 +45,7 @@ export default class ClientRuntime extends Runtime {
   public transactionManager: TransactionManager;
   public socket: Socket | null = null;
   public lobby: ClientLobby;
+  public logger: Logger;
 
   // Singleton
   public static instance: ClientRuntime;
@@ -61,7 +60,7 @@ export default class ClientRuntime extends Runtime {
     super();
 
     if (ClientRuntime.instance !== undefined) {
-      throw new Error("Attempted to create another ClientRuntime");
+      throw new Error("Attempted to create another " + this.constructor.name);
     }
 
     ClientRuntime.instance = this;
@@ -72,34 +71,22 @@ export default class ClientRuntime extends Runtime {
     this.moveResolver = new MoveResolver();
     this.transactionManager = new TransactionManager();
     this.lobby = new ClientLobby();
+    this.logger = new Logger();
 
     this.updateWithContext = this.update.bind(this);
   }
 
+  public getLogger(): Logger {
+    return this.logger;
+  }
+
   public connect(): void {
-    this.socket = io();
+    this.socket = io({reconnection: false});
+
+    // TODO: need to get a lobby here
     this.socket.on("connect", () => {
-      this.player = new ClientPlayer(this.getSocket().id);
-      this.lobby.addPlayer(this.player);
+      this.logger.info("Connected to Server", {socket: this.getSocket().id});
       this.start();
-    });
-
-    this.socket.on(Events.LobbyEvent.PUBLISH_UPDATE, (lobby: SerialisedLobby) => {
-      this.lobby.update(lobby.players.map((p: SerialisedPlayer) =>
-        new ClientPlayer(p.id, p.state)));
-    });
-
-    this.socket.on(Events.MatchEvent.MATCHED, (match: SerialisedMatch) => {
-      // TODO: We might want to put this behind an input
-      // AUTO READY
-
-      setTimeout(() => {
-        this.getSocket().emit(Events.MatchEvent.READY, this.getPlayer().serialise());
-      }, 500);
-    });
-
-    this.socket.on(Events.MatchEvent.PUBLISH_UPDATE, (match: SerialisedMatch) => {
-
     });
   }
 
@@ -155,6 +142,8 @@ export default class ClientRuntime extends Runtime {
   }
 
   public start() {
+    this.logger.info("Starting Client Runtime", { mode: this.mode, flags: this.flags.join(",") });
+
     if (this.mode === RuntimeMode.STEPPED) {
       this.enableSteppedMode();
     }
@@ -231,26 +220,20 @@ export default class ClientRuntime extends Runtime {
     return this.transactionManager.getHistory();
   }
 
+  /*
   public createMoveTransaction(
     piece: Piece,
     target: Tile,
   ): MoveTransaction {
     return this.transactionManager.createMoveTransaction(
       Date.now(),
-      this.getPlayer(),
+      this.player,
       this.getBoard(),
       piece,
       target
     );
   }
-
-  public createInitialiseTransaction(): Transaction {
-    return this.transactionManager.create(
-      Date.now(),
-      this.getPlayer(),
-      TransactionType.INITIALISE
-    );
-  }
+   */
 
   public toggleDebugger(): void {
     this.debug.toggleEnabled();
@@ -266,11 +249,13 @@ export default class ClientRuntime extends Runtime {
     throw new Error("Cannot get board!");
   }
 
-  public getPlayer(): PlayerCore {
-    if (this.player === null) {
-      throw new Error("Cannot get PlayerCore!");
-    }
+  public createPlayer(id: string, socket: Socket): ClientPlayer {
+    this.player = new ClientPlayer(id, socket);
 
+    return this.player;
+  }
+
+  public getPlayer(): ClientPlayer | null {
     return this.player;
   }
 

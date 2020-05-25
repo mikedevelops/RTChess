@@ -94,7 +94,7 @@ export default class DisplayBoard extends Entity implements WillDraw, WillDebug 
   }
 
   public movePiece(piece: Piece, tile: Tile): void {
-    ClientRuntime.instance.createMoveTransaction(piece, tile);
+    //ClientRuntime.instance.createMoveTransaction(piece, tile);
   }
 
   public getTileAt(position: Vector2): Tile | null {

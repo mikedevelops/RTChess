@@ -7,13 +7,18 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:server": "cd packages/RTChessServer && npm run start",
     "watch:client": "cd packages/RTChessClient && npm run watch",
+    "build:client": "cd packages/RTChessClient && npm run build",
     "compile:client": "cd packages/RTChessClient && npm run compile",
     "build:server": "cd packages/RTChessServer && npm run build",
     "watch:server": "cd packages/RTChessServer && npm run watch",
     "compile:server": "cd packages/RTChessServer && npm run compile",
     "watch:core": "cd packages/RTChessCore && npm run watch",
     "compile:core": "cd packages/RTChessCore && npm run compile",
-    "prepare:assets": "mkdir -p packages/RTChessServer/dist/public/fonts && cp \"packages/RTChessClient/fonts/Perfect DOS VGA 437.ttf\" \"packages/RTChessServer/dist/public/fonts/Perfect DOS VGA 437.ttf\""
+    "build:core": "cd packages/RTChessCore && npm run build",
+    "prepare:assets": "mkdir -p packages/RTChessServer/dist/public/fonts && cp \"packages/RTChessClient/fonts/Perfect DOS VGA 437.ttf\" \"packages/RTChessServer/dist/public/fonts/Perfect DOS VGA 437.ttf\"",
+    "compile:all": "npm run build:all && concurrently \"npm:compile:core\" \"npm:compile:client\" \"npm:compile:server\"",
+    "watch:all": "npm run build:all && concurrently \"npm:watch:core\" \"npm:watch:client\" \"npm:watch:server\"",
+    "build:all": "npm run build:core && npm run build:server && npm run build:client"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +26,7 @@
   "devDependencies": {
     "concurrently": "^5.2.0",
     "lerna": "^3.21.0",
-    "parcel-bundler": "^1.12.4"
+    "parcel-bundler": "^1.12.4",
+    "typescript": "^3.9.3"
   }
 }

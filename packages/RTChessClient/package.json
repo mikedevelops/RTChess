@@ -6,8 +6,8 @@
   "scripts": {
     "test": "jest",
     "watch": "parcel watch src/index.ts --no-autoinstall --no-hmr",
-    "start": "parcel src/index.html --no-autoinstall",
-    "compile": "tsc --watch --noEmit"
+    "compile": "tsc --watch --noEmit",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",

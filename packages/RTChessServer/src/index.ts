@@ -14,7 +14,6 @@ app.use(express.static("../RTChessClient/fonts"));
 const lobby = new ServerLobby();
 const runtime = new ServerRuntime(io, lobby);
 
-runtime.start();
 
 // TODO: Sync this with the client!
 // This now exists in 2 places!
@@ -51,5 +50,6 @@ app.get("/", (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(PORT);
+  runtime.getLogger().info(`Server listening on ${PORT}`);
+  runtime.start();
 });

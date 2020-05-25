@@ -8,11 +8,12 @@ import ClientRuntime, { RuntimeMode } from "../Runtime/ClientRuntime";
 // TODO: Implement a fixed/adaptive resolution to support different
 // window sizes
 
+// TODO: These need to be int in draw order!
 export enum SortLayer {
-  BOARD,
-  TILE,
-  PIECE,
-  UI,
+  BOARD= 0,
+  TILE= 1,
+  PIECE= 2,
+  UI = 3,
 }
 
 export default class Renderer {

@@ -4,6 +4,7 @@ import ClientRuntime, { RuntimeMode, RuntimeFlag } from "./Runtime/ClientRuntime
 import InputDelegator from "./Input/InputDelegator";
 import Debugger, { DebugFlag } from "./Debugger/Debugger";
 import DebugInputManager from "./Input/DebugInputManager";
+import Logger from "rtchess-core";
 
 const root = document.getElementById("stage");
 const dpr = window.devicePixelRatio || 1;
@@ -23,6 +24,7 @@ const debug = new Debugger([
   DebugFlag.TRANSACTIONS,
   DebugFlag.ENTITIES,
   DebugFlag.NETWORK,
+  DebugFlag.CLIENT_LOGS,
 ]);
 const runtime = new ClientRuntime(
   root,

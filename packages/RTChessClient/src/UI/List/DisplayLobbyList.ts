@@ -1,5 +1,5 @@
 import DisplayList from './DisplayList';
-import { PlayerCore, playerStateToString, PlayerState, Vector2 } from 'rtchess-core';
+import { PlayerCore, PlayerState, Vector2 } from 'rtchess-core';
 import Color from '../../Renderer/Color';
 import ClientRuntime from '../../Runtime/ClientRuntime';
 
@@ -25,7 +25,7 @@ export default class DisplayLobbyList extends DisplayList<PlayerCore> {
     }
 
     ctx.fillText(
-      `${player.getId()} ${playerStateToString(player.getState())}`,
+      `${player.isClientPlayer() ? "* " : ""}${player.getId()} ${(player.getState())}`,
       position.x,
       position.y
     );

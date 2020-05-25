@@ -2,14 +2,26 @@ import SerialisedPlayer from '../Player/SerialisedPlayer';
 import Match from '../Match/Match';
 import PlayerCore, { PlayerState } from '../Player/PlayerCore';
 import { SerialisedMatch } from '../Match/SerialisedMatch';
+import Logger from '../Logging/Logger';
 
 export interface SerialisedLobby {
+  client: SerialisedPlayer;
   players: SerialisedPlayer[];
+  matches: SerialisedMatch[];
+}
+
+export enum LobbyType {
+  CLIENT = "CLIENT",
+  SERVER =  "SERVER",
 }
 
 export default abstract class Lobby {
   private players: Map<string, PlayerCore> = new Map();
-  private matches: Map<PlayerCore, Match> = new Map();
+  private matchesByPlayer: Map<PlayerCore, Match> = new Map();
+  private matchesById: Map<string, Match> = new Map();
+
+  protected abstract getLogger(): Logger;
+  protected abstract getType(): LobbyType;
 
   public getPlayerCount(): number {
     return Object.keys(this.players).length;
@@ -19,66 +31,135 @@ export default abstract class Lobby {
     return [...this.players.values()];
   }
 
-  public addPlayer(player: PlayerCore): void {
-    if (this.players.has(player.getId())) {
-      throw new Error("Trying to add player to a lobby they are already in!");
+  public setPlayerReady(id: string): Match {
+    const player = this.players.get(id);
+
+    if (player === undefined) {
+      throw new Error(`Trying to set a Player "${id}" ready that we can't find`);
     }
 
-    this.players.set(player.getId(), player);
+    player.setState(PlayerState.READY);
+
+    const match = this.matchesByPlayer.get(player);
+
+    if (match === undefined) {
+      throw new Error(`Trying to set a Player "${id}" ready that is not in a Match`);
+    }
+
+    return match;
   }
 
-  public updatePlayer(id: string, state: PlayerState): PlayerCore {
-    if (!this.players.has(id)) {
-      throw new Error("Trying to update a player that does not exist!");
+  public getPlayersByType<T>(type: any): T[] {
+    // TODO: This is probably bad typesctipt!!!!
+
+    const players: T[] = [];
+
+    for (const player of this.players.values()) {
+      if (player instanceof type)  {
+        players.push(<unknown>player as T);
+      }
     }
 
-    const player = this.players.get(id) as PlayerCore;
+    return players;
+  }
 
-    player.setState(state);
+  // TODO: Standardise these APIs
+
+  public getPlayerById(id: string): PlayerCore {
+    const player = this.players.get(id);
+
+    if (player === undefined) {
+      throw new Error("Trying to get a player that does not exist!");
+    }
 
     return player;
   }
 
-  public removePlayer(player: PlayerCore): void {
-    if (!this.players.has(player.getId()) === undefined) {
-      throw new Error("Attempted to remove a socket that was not in the lobby!");
-    }
+  public getMatches(): Match[] {
+    return [...this.matchesById.values()];
+  }
 
-    const match = this.matches.get(player);
+  public getMatchById(id: string): Match {
+    const match = this.matchesById.get(id);
 
     if (match === undefined) {
+      throw new Error("Trying to get a match that does not exist!");
+    }
+
+    return match;
+  }
+
+  public getMatchByPlayer(player: PlayerCore): Match | null {
+    const match = this.matchesByPlayer.get(player);
+
+    if (match === undefined) {
+      return null;
+    }
+
+    return match;
+  }
+
+  public addPlayer(player: PlayerCore): void {
+    if (this.players.has(player.getId())) {
+      this.getLogger().error(`Trying to add player to a ${this.getType()} lobby they are already in`, { player: player.getId() });
       return;
     }
 
-    for (const player of match.getPlayers()) {
-      player.setState(PlayerState.CONNECTED);
-      this.matches.delete(player);
+    this.players.set(player.getId(), player);
+    this.getLogger().info(`Added player to ${this.getType()} lobby`, { player: player.getId() });
+  }
+
+  public removePlayer(player: PlayerCore): void {
+    if (!this.players.has(player.getId()) === undefined) {
+      this.getLogger().error(`Trying to remove player from the ${this.getType()} lobby that they are not in`, {player: player.getId()});
+      return;
+    }
+
+    const match = this.matchesByPlayer.get(player);
+
+    if (match !== undefined) {
+      this.abortMatch(match);
     }
 
     this.players.delete(player.getId());
+    this.getLogger().info(`Removed player from ${this.getType()} lobby`, { player: player.getId() });
   }
 
-  // TODO: a place to look to optimize
-  public update(players: PlayerCore[]): void {
-    this.players.clear();
-
-    for (const player of players) {
-      this.players.set(player.getId(), player);
+  public updateMatches(): void {
+    for (const match of this.matchesById.values()) {
+      if (match.isReady()) {
+        match.start();
+      }
     }
-  };
+  }
 
-  public serialise(): SerialisedLobby {
+  public serialise(playerId: string): SerialisedLobby {
+    const player = this.getPlayers().find(p => p.getId() === playerId);
+
+    if (player === undefined) {
+      throw new Error(`Could not find Client "${playerId}" in Lobby`);
+    }
+
     return {
-      players: [...this.players.values()].map(p => p.serialise())
+      players: this.getPlayers().map(p => p.serialise()),
+      matches: this.getMatches().map(m => m.serialise()),
+      client: player.serialise(),
     };
   }
 
-  public getNewMatches(): Match[] {
-    const matches: Match[] = [];
+  public matchmake(): void {
+    if (this.getType() !== LobbyType.SERVER) {
+      throw new Error("Attempted to get matches from a non SERVER Lobby");
+    }
+
+    this.getLogger().info("Matchmaking");
+
     const connected = [...this.players.values()].filter(p => p.getState() === PlayerState.CONNECTED);
 
     if (connected.length < 2) {
-      return [];
+      this.getLogger().info("Not enough Players for a Match");
+
+      return;
     }
 
     const sliced = connected.slice(0, Math.floor(connected.length / 2) + 1);
@@ -86,14 +167,28 @@ export default abstract class Lobby {
     for (let i = 0; i < sliced.length; i += 2) {
       const playerOne = sliced[i];
       const playerTwo = sliced[i + 1];
-      const match = new Match(playerOne, playerTwo);
 
-      matches.push(match);
-      this.matches.set(playerOne, match);
-      this.matches.set(playerTwo, match);
+      this.createMatch(new Match(playerOne, playerTwo));
     }
+  }
 
-    return matches;
+  protected createMatch(match: Match): void {
+    const [p1,p2] = match.getPlayers();
+
+    this.getLogger().info(`Match Created!`, { id: match.getId(), p1: p1.getId(), p2: p2.getId() });
+    this.matchesByPlayer.set(p1, match);
+    this.matchesByPlayer.set(p2, match);
+    this.matchesById.set(match.getId(), match);
+  }
+
+  protected abortMatch(match: Match): void {
+    const [p1, p2] = match.getPlayers();
+
+    match.abort();
+    this.getLogger().info(`Match Aborted`, { math: match.getId() });
+    this.matchesByPlayer.delete(p1);
+    this.matchesByPlayer.delete(p2);
+    this.matchesById.delete(match.getId());
   }
 }
 

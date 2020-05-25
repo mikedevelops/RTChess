@@ -9,9 +9,9 @@ import { InputEvent } from '../Input/InputDelegator';
 import Tile from '../GameObject/Board/Tile';
 import MathUtils from '../Math/MathUtils';
 import { SerialisedTransaction } from 'rtchess-core';
-import SocketIOClient from 'socket.io-client';
 import { Vector2, Lobby, TransactionState, transactionState, transactionType } from 'rtchess-core';
 import DebugInputManager from '../Input/DebugInputManager';
+import ClientPlayer from '../Lobby/ClientPlayer';
 
 export enum DebugFlag {
   FRAMES,
@@ -20,6 +20,7 @@ export enum DebugFlag {
   EVENTS,
   TRANSACTIONS,
   NETWORK,
+  CLIENT_LOGS
 }
 
 /**
@@ -56,6 +57,7 @@ export default class Debugger {
     return this.enabled;
   }
 
+
   public draw(): void {
     if (!this.enabled) {
       return;
@@ -71,7 +73,11 @@ export default class Debugger {
     let lineOffsetY = position.y + padding.y;
     let lineOffsetX = position.x + padding.x;
 
-    ctx.fillStyle = Color.DEBUG.toString();
+    ctx.fillStyle = Color.YELLOW.toString();
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 2;
+    ctx.shadowBlur = 1;
+    ctx.shadowColor = Color.BLACK.toString();
     ctx.font = Text.getFont(fontSize);
 
     /**
@@ -85,10 +91,29 @@ export default class Debugger {
 
       lineOffsetY += newline;
 
+      ctx.fillText("PLAYER", lineOffsetX, lineOffsetY += newline);
+      ctx.fillText(
+        ClientRuntime.instance.getPlayer() === null ?
+          "NULL" :
+          (ClientRuntime.instance.getPlayer() as ClientPlayer).getId(),
+        lineOffsetX,
+        lineOffsetY += newline
+      );
+
+      lineOffsetY += newline;
+
       ctx.fillText("LOBBY", lineOffsetX, lineOffsetY += newline);
 
       for (const player of lobby.getPlayers()) {
         ctx.fillText(player.getId(), lineOffsetX, lineOffsetY += newline);
+      }
+
+      lineOffsetY += newline;
+
+      ctx.fillText("MATCHES", lineOffsetX, lineOffsetY += newline);
+
+      for (const match of lobby.getMatches()) {
+        ctx.fillText(`${match.getId()}`, lineOffsetX, lineOffsetY += newline);
       }
     }
 
@@ -205,6 +230,21 @@ export default class Debugger {
             (lineOffsetY += newline * 2)
           );
         });
+    }
+
+    /**
+     * Client logs
+     */
+    if (this.hasFlag(DebugFlag.CLIENT_LOGS)) {
+      const logs = ClientRuntime.instance.logger.getHistory();
+
+      ctx.fillText("CLIENT LOGS", lineOffsetX, lineOffsetY += newline * 2);
+
+      lineOffsetY += newline;
+
+      for (const log of logs) {
+        ctx.fillText(log.format(), lineOffsetX, lineOffsetY += newline);
+      }
     }
 
     // TODO: Toggle Debugger on "`"
