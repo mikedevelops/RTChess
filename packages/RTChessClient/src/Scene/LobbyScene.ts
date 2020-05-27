@@ -27,7 +27,10 @@ export default class LobbyScene extends Scene implements WillEnter {
       logger.event(`(Server -> Client) Player added to Lobby`, { player: sl.client.id, client: socket.id  });
 
       if (ClientRuntime.instance.getPlayer() === null) {
-        lobby.addPlayer(ClientRuntime.instance.createPlayer(sl.client.id, socket));
+        const player = ClientRuntime.instance.createPlayer(sl.client.id, socket);
+
+        document.title = `${player.getId()} | ${socket.id}`;
+        lobby.addPlayer(player);
       }
 
       const player = ClientRuntime.instance.getPlayer() as ClientPlayer;
@@ -38,6 +41,10 @@ export default class LobbyScene extends Scene implements WillEnter {
         }
       }
 
+      lobby.update(sl);
+    });
+
+    socket.on(Events.LobbyEvent.PLAYER_REMOVED, (sl: SerialisedLobby) => {
       lobby.update(sl);
     });
 

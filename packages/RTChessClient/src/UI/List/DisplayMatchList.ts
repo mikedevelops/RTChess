@@ -1,11 +1,10 @@
 import DisplayList from './DisplayList';
 import { Match, Vector2, MatchState } from 'rtchess-core';
-import ClientRuntime from '../../Runtime/ClientRuntime';
 import Color from '../../Renderer/Color';
 
 export default class DisplayMatchList extends DisplayList<Match> {
-  public update(): void {
-    this.updateItems(ClientRuntime.instance.lobby.getMatches());
+  protected getItems(): Match[] {
+      throw new Error("Method not implemented.");
   }
 
   protected drawItem(ctx: CanvasRenderingContext2D, match: Match, position: Vector2) {

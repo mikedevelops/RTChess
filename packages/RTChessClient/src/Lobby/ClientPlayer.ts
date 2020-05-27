@@ -8,9 +8,7 @@ export default class ClientPlayer implements PlayerCore {
     private socket: Socket | null = null,
     private state: PlayerState = PlayerState.CONNECTED,
     private readonly type: PlayerType = PlayerType.HUMAN,
-  ) {
-    console.log("CREATED CLIENT PLAYER")
-  }
+  ) {}
 
   public getId(): string {
     return this.id;

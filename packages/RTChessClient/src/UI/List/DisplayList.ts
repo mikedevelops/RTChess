@@ -7,27 +7,21 @@ import Text from "../../Renderer/Text";
 import Color from '../../Renderer/Color';
 import { Rect, Vector2 } from "rtchess-core";
 
-export default class DisplayList<T> extends Entity implements WillDraw {
+export default abstract class DisplayList<T> extends Entity implements WillDraw {
   private readonly padding: Vector2 = Vector2.unit(0.5, 1, Unit.getUnit(1));
 
   constructor(private title: string, private items: T[] = []) {
     super();
   }
 
-  public updateItems(items: T[]): void {
-    this.items = items;
-  }
+  protected abstract getItems(): T[];
 
   public getName(): string {
     return 'LIST';
   }
 
-  public start(): void {
-
-  }
-
-  public update(): void {
-  }
+  public start(): void {}
+  public update(): void {}
 
   public draw(): void {
     const ctx = ClientRuntime.instance.renderer.getContext();
@@ -48,7 +42,7 @@ export default class DisplayList<T> extends Entity implements WillDraw {
 
     offsetY += newline;
 
-    for (const item of this.items) {
+    for (const item of this.getItems()) {
       offsetY += newline;
       this.drawItem(ctx, item, new Vector2(offsetX, offsetY));
     }
@@ -69,7 +63,7 @@ export default class DisplayList<T> extends Entity implements WillDraw {
   public getWorldRect(): Rect {
     const position = this.getWorldPosition();
     const width = Unit.getUnit(15);
-    const height = (Text.LINE_HEIGHT * this.items.length) + Text.LINE_HEIGHT;
+    const height = (Text.LINE_HEIGHT * this.getItems().length) + Text.LINE_HEIGHT;
 
     return new Rect(
       position.y,

@@ -4,8 +4,8 @@ import Color from '../../Renderer/Color';
 import ClientRuntime from '../../Runtime/ClientRuntime';
 
 export default class DisplayLobbyList extends DisplayList<PlayerCore> {
-  public update(): void {
-    this.updateItems(ClientRuntime.instance.lobby.getPlayers());
+  protected getItems(): PlayerCore[] {
+    return ClientRuntime.instance.lobby.getPlayers();
   }
 
   protected drawItem(ctx: CanvasRenderingContext2D, player: PlayerCore, position: Vector2) {

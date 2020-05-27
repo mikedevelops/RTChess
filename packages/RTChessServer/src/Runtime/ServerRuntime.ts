@@ -45,17 +45,15 @@ export default class ServerRuntime extends Runtime {
         this.lobby.matchmake();
 
         this.forEachPlayer((player: ServerPlayer) => {
-          player.getSocket().emit(Events.LobbyEvent.PLAYER_REMOVED);
+          player.getSocket().emit(Events.LobbyEvent.PLAYER_REMOVED, this.lobby.serialise(player.getId()));
         });
       });
 
-      socket.on(Events.MatchEvent.READY, (player: SerialisedPlayer) => {
-        const match = this.lobby.setPlayerReady(player.id);
-        const opponent = match.getOpponent(player.id) as ServerPlayer;
-
-        // Let other player know that we are waiting for them
-        this.logger.event(`(Server -> Client) Your Opponent is Ready`, { player: player.id, opponent: opponent.getId() });
-        opponent.getSocket().emit(Events.MatchEvent.READY, this.lobby.serialise(opponent.getId()));
+      socket.on(Events.MatchEvent.READY, (sp: SerialisedPlayer) => {
+        this.lobby.setPlayerReady(sp.id);
+        this.forEachPlayer((player: ServerPlayer) => {
+          player.getSocket().emit(Events.MatchEvent.READY, this.lobby.serialise(player.getId()));
+        });
       });
     });
   }
