@@ -5,12 +5,13 @@ import ClientRuntime from '../../Runtime/ClientRuntime';
 import Unit from '../../Math/Unit';
 import Text from "../../Renderer/Text";
 import Color from '../../Renderer/Color';
-import { Rect, Vector2 } from "rtchess-core";
+import Rect from '../../../../RTChessCore/src/Primitives/Rect';
+import Vector2 from '../../../../RTChessCore/src/Primitives/Vector2';
 
 export default abstract class DisplayList<T> extends Entity implements WillDraw {
   private readonly padding: Vector2 = Vector2.unit(0.5, 1, Unit.getUnit(1));
 
-  constructor(private title: string, private items: T[] = []) {
+  constructor(private title: string) {
     super();
   }
 

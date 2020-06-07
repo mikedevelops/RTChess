@@ -2,7 +2,8 @@ import Tile from "../GameObject/Board/Tile";
 import Piece from "../GameObject/Piece/Piece";
 import DisplayBoard from "../GameObject/Board/DisplayBoard";
 import Transaction from './Transaction';
-import { TransactionType, SerialisedMoveTransaction, PlayerCore } from 'rtchess-core';
+import { SerialisedMoveTransaction, TransactionType } from '../../../RTChessCore/src/Transaction/Transaction';
+import { PlayerCore } from '../../../RTChessCore/src/Player/Player';
 
 export default class MoveTransaction extends Transaction {
   constructor(

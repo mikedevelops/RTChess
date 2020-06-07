@@ -1,8 +1,9 @@
-import { Vector2, Rect } from "rtchess-core";
 import Node from "./Node";
 import ClientRuntime from "../Runtime/ClientRuntime";
 import WillDebug from './WillDebug';
 import Unit from '../Math/Unit';
+import Rect from '../../../RTChessCore/src/Primitives/Rect';
+import Vector2 from '../../../RTChessCore/src/Primitives/Vector2';
 
 export default abstract class Entity extends Node implements WillDebug {
   protected enabled: boolean = true;

@@ -1,6 +1,6 @@
 import express from "express";
 import http from "http";
-import socketio, { Socket } from "socket.io";
+import socketio from "socket.io";
 import ServerRuntime from './Runtime/ServerRuntime';
 import ServerLobby from './Lobby/ServerLobby';
 
@@ -9,14 +9,11 @@ const server = http.createServer(app);
 const io = socketio(server);
 const PORT = process.env.PORT || 8080;
 
-app.use(express.static("../RTChessClient/dist"));
-app.use(express.static("../RTChessClient/fonts"));
+app.use(express.static("public"));
+
 const lobby = new ServerLobby();
 const runtime = new ServerRuntime(io, lobby);
 
-
-// TODO: Sync this with the client!
-// This now exists in 2 places!
 const client = `
 <!doctype html>
 <html lang="en">
@@ -28,7 +25,7 @@ const client = `
     <style>
         @font-face {
             font-family: "dos";
-            src: url("Perfect DOS VGA 437.ttf")
+            src: url("fonts/Perfect DOS VGA 437.ttf")
         }
 
         * { margin: 0; padding: 0; }

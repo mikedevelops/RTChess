@@ -1,5 +1,5 @@
 import Transaction from './Transaction';
-import { TransactionType, SerialisedTransaction } from 'rtchess-core';
+import { SerialisedTransaction, TransactionType } from '../../../RTChessCore/src/Transaction/Transaction';
 
 export default class InitialiseTransaction extends Transaction {
   getType(): TransactionType {

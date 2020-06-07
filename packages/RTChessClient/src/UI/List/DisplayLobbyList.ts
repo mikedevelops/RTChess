@@ -1,7 +1,8 @@
 import DisplayList from './DisplayList';
-import { PlayerCore, PlayerState, Vector2 } from 'rtchess-core';
 import Color from '../../Renderer/Color';
 import ClientRuntime from '../../Runtime/ClientRuntime';
+import { PlayerCore, PlayerState } from '../../../../RTChessCore/src/Player/Player';
+import Vector2 from '../../../../RTChessCore/src/Primitives/Vector2';
 
 export default class DisplayLobbyList extends DisplayList<PlayerCore> {
   protected getItems(): PlayerCore[] {

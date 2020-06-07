@@ -1,15 +1,14 @@
-import WillDebug from "../../Object/WillDebug";
-import WillDraw from "../../Object/WillDraw";
-import { Vector2 } from "rtchess-core";
-import ClientRuntime from "../../Runtime/ClientRuntime";
-import { SortLayer } from "../../Renderer/Renderer";
-import Color from "../../Renderer/Color";
-import Unit from "../../Math/Unit";
-import Text from "../../Renderer/Text";
-import Entity from "../../Object/Entity";
-import { Rect } from "rtchess-core";
-import Piece from "../Piece/Piece";
-import DisplayBoard from "./DisplayBoard";
+import WillDebug from '../../Object/WillDebug';
+import WillDraw from '../../Object/WillDraw';
+import ClientRuntime from '../../Runtime/ClientRuntime';
+import { SortLayer } from '../../Renderer/Renderer';
+import Color from '../../Renderer/Color';
+import Unit from '../../Math/Unit';
+import Text from '../../Renderer/Text';
+import Entity from '../../Object/Entity';
+import Piece from '../Piece/Piece';
+import Rect from '../../../../RTChessCore/src/Primitives/Rect';
+import Vector2 from '../../../../RTChessCore/src/Primitives/Vector2';
 
 const NAME = "TILE";
 
@@ -25,7 +24,7 @@ export default class Tile extends Entity implements WillDebug, WillDraw {
 
   private piece: Piece | null = null;
 
-  constructor(private board: DisplayBoard, private coords: Vector2) {
+  constructor(private coords: Vector2) {
     super();
   }
 

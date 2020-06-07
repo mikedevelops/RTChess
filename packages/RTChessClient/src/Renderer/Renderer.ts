@@ -3,12 +3,12 @@ import Color from "./Color";
 import WillDraw from "../Object/WillDraw";
 import WillDebug, { instanceofWillDebug } from "../Object/WillDebug";
 import Unit from "../Math/Unit";
-import ClientRuntime, { RuntimeMode } from "../Runtime/ClientRuntime";
+import ClientRuntime from '../Runtime/ClientRuntime';
 
 // TODO: Implement a fixed/adaptive resolution to support different
 // window sizes
 
-// TODO: These need to be int in draw order!
+// NOTE: These need to be integers in the order they are drawn 0 -> ?
 export enum SortLayer {
   BOARD= 0,
   TILE= 1,

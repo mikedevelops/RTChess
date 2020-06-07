@@ -1,7 +1,6 @@
-import PlayerCore, { PlayerState } from '../Player/PlayerCore';
-import { SerialisedTransaction } from '../Transaction/SerialisedTransaction';
 import Queue from '../Primitives/Queue';
-import { SerialisedMatch } from './SerialisedMatch';
+import { PlayerCore, PlayerState, SerialisedPlayer } from '../Player/Player';
+import { SerialisedTransaction } from '../Transaction/Transaction';
 
 export enum MatchState {
   READYING = "READYING",
@@ -9,6 +8,18 @@ export enum MatchState {
   PLAYING = "PLAYING",
   FINALISING = "FINALISING",
   ABORTED = "ABORTED",
+}
+
+export enum MatchEvent {
+  MATCHED = "SERVER:MATCH:MATCHED",
+  READY = "SERVER:MATCH:READY",
+  START = "SERVER:MATCH:"
+}
+
+export interface SerialisedMatch {
+  id: string;
+  playerOne: SerialisedPlayer;
+  playerTwo: SerialisedPlayer;
 }
 
 export default class Match {
@@ -56,10 +67,6 @@ export default class Match {
     return [this.playerOne, this.playerTwo];
   }
 
-  public start(): void {
-
-  }
-
   public getOpponent(playerId: string): PlayerCore {
     if (this.playerOne.getId() === playerId) {
       return this.playerTwo;
@@ -91,8 +98,5 @@ export default class Match {
       playerOne: this.playerOne.serialise(),
       playerTwo: this.playerTwo.serialise(),
     };
-  }
-
-  public update(): void {
   }
 }

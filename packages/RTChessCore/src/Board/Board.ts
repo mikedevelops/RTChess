@@ -10,18 +10,12 @@ export default class Board {
   public static SERIALIZED_POSITION_Y: number = 2;
 
   private pieces: Map<Vector2, Piece> = new Map();
-  private width: number = 4;
-  private height: number = 4;
 
   public start(): void {
     for (let i = 0; i < 4; i++) {
       const pawn = new Pawn(this.pieces.size, new Vector2(i, 0));
       this.pieces.set(pawn.getPosition(), pawn);
     }
-  }
-
-  private addPiece(piece: Piece, position: Vector2): void {
-    this.pieces.set(position, piece);
   }
 
   public serialise(): SerialisedPiece[] {

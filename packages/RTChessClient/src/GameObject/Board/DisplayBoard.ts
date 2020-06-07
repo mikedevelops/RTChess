@@ -2,16 +2,15 @@ import Entity from "../../Object/Entity";
 import WillDraw from "../../Object/WillDraw";
 import WillDebug from "../../Object/WillDebug";
 import Tile from "./Tile";
-import { Vector2 } from "rtchess-core";
 import Piece from "../Piece/Piece";
 import ClientRuntime, { RuntimeFlag } from "../../Runtime/ClientRuntime";
 import { SortLayer } from "../../Renderer/Renderer";
-import { Rect } from "rtchess-core";
+import Rect from '../../../../RTChessCore/src/Primitives/Rect';
+import Vector2 from '../../../../RTChessCore/src/Primitives/Vector2';
 
 export default class DisplayBoard extends Entity implements WillDraw, WillDebug {
   private tiles: Map<string, Tile> = new Map();
   private pieces: Map<string, Piece> = new Map();
-  private takenPieces: Map<string, Piece> = new Map();
   private width: number = 4;
   private height: number = 4;
   private activePiece: Piece | null = null;

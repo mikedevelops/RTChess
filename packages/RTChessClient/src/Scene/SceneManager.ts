@@ -1,14 +1,9 @@
-import Scene from "./Scene";
-import Text from "../Renderer/Text";
-import WillEnter, { instanceofWillEnter } from "../Scene/WillEnter";
-import WillLeave, { instanceofWillLeave } from "../Scene/WillLeave";
-import Node from "../Object/Node";
-import WillDebug, { instanceofWillDebug } from "../Object/WillDebug";
-import WillDraw, { instanceofWillDraw } from "../Object/WillDraw";
-import ClientRuntime, { RuntimeMode } from "../Runtime/ClientRuntime";
-import Color from "../Renderer/Color";
-import Unit from "../Math/Unit";
-import Entity from "../Object/Entity";
+import Scene from './Scene';
+import WillEnter, { instanceofWillEnter } from '../Scene/WillEnter';
+import WillLeave, { instanceofWillLeave } from '../Scene/WillLeave';
+import Node from '../Object/Node';
+import WillDraw, { instanceofWillDraw } from '../Object/WillDraw';
+import Entity from '../Object/Entity';
 
 export enum SceneType {
   SANDBOX,

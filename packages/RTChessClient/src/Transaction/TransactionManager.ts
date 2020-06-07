@@ -4,15 +4,13 @@ import DisplayBoard from '../GameObject/Board/DisplayBoard';
 import MoveTransaction from './MoveTransaction';
 import Transaction from './Transaction';
 import InitialiseTransaction from './InitialiseTransaction';
-import Socket = SocketIOClient.Socket;
-import { SerialisedTransaction, PlayerCore, TransactionType } from 'rtchess-core';
+import { SerialisedTransaction, TransactionType } from '../../../RTChessCore/src/Transaction/Transaction';
+import { PlayerCore } from '../../../RTChessCore/src/Player/Player';
 
 export default class TransactionManager {
   // TODO: benchmark string vs number key
   private transactions: Transaction[] = [];
   private history: SerialisedTransaction[] = [];
-
-  //constructor(private socket: Socket) {}
 
   public create(createdAt: number, player: PlayerCore, type: TransactionType): Transaction {
     switch(type) {
@@ -55,6 +53,7 @@ export default class TransactionManager {
     this.clear();
   }
 
+  /*
   private updateHistory(transaction: Transaction): void {
     const historyEntry = this.history.find(st => st.createdAt === transaction.getCreatedAt());
 
@@ -67,6 +66,7 @@ export default class TransactionManager {
     historyEntry.state = transaction.getState();
     historyEntry.resolvedAt = transaction.getResolvedAt();
   }
+   */
 
   private clear(): void {
     this.history = this.history.concat(this.transactions.map((t: Transaction) => t.serialise()));

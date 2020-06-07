@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "outDir": "./dist",
+    "module": "commonjs",
+    "target": "es2019",
+    "lib": ["es2019", "DOM"],
+    "strict": true,
+    "noUnusedLocals": false, // TODO: re-enable
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "typeRoots": [
+      "types",
+      "node_modules/@types"
+    ]
+  },
+  "include": [
+    "packages/RTChessServer/src/**/*",
+    "packages/RTChessCore/src/**/*",
+    "packages/RTChessLog/src/**/*"
+  ]
+}

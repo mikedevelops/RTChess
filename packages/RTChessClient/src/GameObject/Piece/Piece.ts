@@ -5,7 +5,8 @@ import { SortLayer } from '../../Renderer/Renderer';
 import WillDebug from '../../Object/WillDebug';
 import Color from '../../Renderer/Color';
 import Tile from '../Board/Tile';
-import { Vector2, Rect } from 'rtchess-core';
+import Rect from '../../../../RTChessCore/src/Primitives/Rect';
+import Vector2 from '../../../../RTChessCore/src/Primitives/Vector2';
 
 export enum PieceType {
   PAWN

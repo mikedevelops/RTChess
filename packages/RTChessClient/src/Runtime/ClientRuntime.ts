@@ -4,21 +4,22 @@ import SceneManager from '../Scene/SceneManager';
 import Debugger from '../Debugger/Debugger';
 import Time from '../Time/Time';
 import Scene from '../Scene/Scene';
-import { PlayerState, SerialisedPlayer, Events, Logger, Runtime, SerialisedLobby, SerialisedTransaction, TransactionType, Vector2 } from 'rtchess-core';
 import Entity from '../Object/Entity';
 import AbstractInputManager from '../Input/AbstractInputManager';
 import DisplayBoard from '../GameObject/Board/DisplayBoard';
 import Piece from '../GameObject/Piece/Piece';
 import MoveResolver from './MoveResolver';
 import TransactionManager from '../Transaction/TransactionManager';
-import Tile from '../GameObject/Board/Tile';
-import MoveTransaction from '../Transaction/MoveTransaction';
-import Transaction from '../Transaction/Transaction';
 import io from 'socket.io-client';
 import ClientPlayer from '../Lobby/ClientPlayer';
 import LobbyScene from '../Scene/LobbyScene';
 import ClientLobby from '../Lobby/ClientLobby';
+import Vector2 from '../../../RTChessCore/src/Primitives/Vector2';
+import { SerialisedTransaction } from '../../../RTChessCore/src/Transaction/Transaction';
+import Runtime from '../../../RTChessCore/src/Runtime/Runtime';
+import Monolog from '../../../RTChessCore/src/Logging/Monolog';
 import Socket = SocketIOClient.Socket;
+import { LogSrc } from '../../../RTChessLog/src/Log/Logger';
 
 export enum RuntimeMode {
   STEPPED = "STEPPED",
@@ -39,13 +40,14 @@ export default class ClientRuntime extends Runtime {
   private readonly updateWithContext: (this: ClientRuntime) => void;
 
   public renderer: Renderer;
-  public input: InputDelegator;
   public sceneManager: SceneManager;
-  public moveResolver: MoveResolver;
-  public transactionManager: TransactionManager;
   public socket: Socket | null = null;
-  public lobby: ClientLobby;
-  public logger: Logger;
+
+  public input = new InputDelegator();
+  public lobby: ClientLobby = new ClientLobby();
+  public logger: Monolog = new Monolog(LogSrc.CLIENT);
+  public transactionManager = new TransactionManager();
+  public moveResolver = new MoveResolver();
 
   // Singleton
   public static instance: ClientRuntime;
@@ -66,17 +68,11 @@ export default class ClientRuntime extends Runtime {
     ClientRuntime.instance = this;
 
     this.renderer = new Renderer(canvas, devicePixelRatio);
-    this.input = new InputDelegator();
     this.sceneManager = new SceneManager([new LobbyScene()]);
-    this.moveResolver = new MoveResolver();
-    this.transactionManager = new TransactionManager();
-    this.lobby = new ClientLobby();
-    this.logger = new Logger();
-
     this.updateWithContext = this.update.bind(this);
   }
 
-  public getLogger(): Logger {
+  public getLogger(): Monolog {
     return this.logger;
   }
 

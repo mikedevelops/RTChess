@@ -1,11 +1,11 @@
 import Rect from './Rect';
 
-interface Coord {
+export type SerialisedVector2 = [number,number];
+
+export interface Point {
   x: number;
   y: number;
 }
-
-export type SerialisedVector2 = [number,number];
 
 export default class Vector2 {
   constructor(private _x: number = 0, private _y: number = 0) {}
@@ -30,8 +30,8 @@ export default class Vector2 {
     return Math.round(this._y);
   }
 
-  public static from(coord: Coord): Vector2 {
-    return new Vector2(coord.x, coord.y);
+  public static from(point: Point): Vector2 {
+    return new Vector2(point.x, point.y);
   }
 
   public static zero(): Vector2 {

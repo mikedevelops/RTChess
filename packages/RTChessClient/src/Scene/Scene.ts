@@ -1,5 +1,5 @@
 import Node from "../Object/Node";
-import { Vector2 } from "rtchess-core";
+import Vector2 from '../../../RTChessCore/src/Primitives/Vector2';
 
 export default abstract class Scene extends Node {
   protected position: Vector2 = Vector2.zero();

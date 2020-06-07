@@ -8,10 +8,11 @@ import Node from '../Object/Node';
 import { InputEvent } from '../Input/InputDelegator';
 import Tile from '../GameObject/Board/Tile';
 import MathUtils from '../Math/MathUtils';
-import { SerialisedTransaction } from 'rtchess-core';
-import { Vector2, Lobby, TransactionState, transactionState, transactionType } from 'rtchess-core';
 import DebugInputManager from '../Input/DebugInputManager';
 import ClientPlayer from '../Lobby/ClientPlayer';
+import Vector2 from '../../../RTChessCore/src/Primitives/Vector2';
+import { SerialisedTransaction, TransactionState } from '../../../RTChessCore/src/Transaction/Transaction';
+import { Log } from '../../../RTChessLog/src/Log/Logger';
 
 export enum DebugFlag {
   FRAMES,
@@ -68,7 +69,6 @@ export default class Debugger {
     const padding = new Vector2(Unit.getUnit(0.5), Unit.getUnit(1));
     const fontSize = Unit.getUnit(0.4);
     const newline = fontSize;
-    const tab = fontSize * 4;
     const scene = ClientRuntime.instance.getScene();
     let lineOffsetY = position.y + padding.y;
     let lineOffsetX = position.x + padding.x;
@@ -221,8 +221,8 @@ export default class Debugger {
           ctx.fillText(
             `[${transaction.createdAt.toString()}] ` +
             `PLAYER ${transaction.player.id} ` +
-            `${transactionType(transaction.type)} ` +
-            `${transactionState(transaction.state)} ` +
+            `${transaction.type} ` +
+            `${transaction.state} ` +
             (!transaction.resolvedAt ?
               "" :
               ` ${transaction.resolvedAt - transaction.createdAt}ms`),
@@ -236,7 +236,9 @@ export default class Debugger {
      * Client logs
      */
     if (this.hasFlag(DebugFlag.CLIENT_LOGS)) {
-      const logs = ClientRuntime.instance.logger.getHistory();
+      // const logs = ClientRuntime.instance.logger.getHistory();
+      // TODO: think about local client logs. Should we have the client debugger show client logs? Or all logs maybe?:w
+      const logs: Log[] = [];
 
       ctx.fillText("CLIENT LOGS", lineOffsetX, lineOffsetY += newline * 2);
 

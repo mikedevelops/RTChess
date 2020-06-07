@@ -1,9 +1,11 @@
-import { Events, Lobby, Logger, LobbyType, Match } from "rtchess-core";
 import ServerRuntime from '../Runtime/ServerRuntime';
 import ServerPlayer from './ServerPlayer';
+import Lobby, { LobbyType } from '../../../RTChessCore/src/Lobby/Lobby';
+import Match, { MatchEvent } from '../../../RTChessCore/src/Match/Match';
+import Monolog from '../../../RTChessCore/src/Logging/Monolog';
 
 export default class ServerLobby extends Lobby {
-  protected getLogger(): Logger {
+  protected getLogger(): Monolog {
     return ServerRuntime.instance.getLogger();
   }
 
@@ -20,8 +22,8 @@ export default class ServerLobby extends Lobby {
 
     const [p1,p2] = this.getMatchPlayers(match);
 
-    p1.getSocket().emit(Events.MatchEvent.MATCHED);
-    p2.getSocket().emit(Events.MatchEvent.MATCHED);
+    p1.getSocket().emit(MatchEvent.MATCHED);
+    p2.getSocket().emit(MatchEvent.MATCHED);
   }
 
   private getMatchPlayers(match: Match): [ServerPlayer,ServerPlayer] {

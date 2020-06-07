@@ -1,6 +1,6 @@
-import { PlayerCore, PlayerState, SerialisedPlayer, PlayerType } from 'rtchess-core';
 import ClientRuntime from '../Runtime/ClientRuntime';
 import Socket = SocketIOClient.Socket;
+import { PlayerCore, PlayerState, PlayerType, SerialisedPlayer } from '../../../RTChessCore/src/Player/Player';
 
 export default class ClientPlayer implements PlayerCore {
   constructor(

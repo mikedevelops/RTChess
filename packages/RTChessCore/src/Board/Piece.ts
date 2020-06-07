@@ -2,8 +2,6 @@ import Vector2 from '../Primitives/Vector2';
 import SerialisedPiece from './SerialisedPiece';
 
 export default abstract class Piece {
-  private moved: boolean = false;
-
   constructor(
     private id: number,
     private position: Vector2

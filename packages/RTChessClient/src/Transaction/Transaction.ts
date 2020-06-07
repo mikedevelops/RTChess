@@ -1,4 +1,5 @@
-import { SerialisedTransaction, TransactionState, TransactionType, PlayerCore } from "rtchess-core";
+import { SerialisedTransaction, TransactionState, TransactionType } from '../../../RTChessCore/src/Transaction/Transaction';
+import { PlayerCore } from '../../../RTChessCore/src/Player/Player';
 
 export default abstract class Transaction {
   protected state: TransactionState = TransactionState.PENDING;

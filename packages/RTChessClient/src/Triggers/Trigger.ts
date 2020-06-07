@@ -1,10 +1,9 @@
-import Entity from "../Object/Entity";
-import { Vector2 } from "rtchess-core";
 import WillDebug from "../Object/WillDebug";
 import ClientRuntime from "../Runtime/ClientRuntime";
 import Tile from "../GameObject/Board/Tile";
 import Color from "../Renderer/Color";
 import GridObject from "../Object/GridObject";
+import Vector2 from '../../../RTChessCore/src/Primitives/Vector2';
 
 export default abstract class Trigger extends GridObject implements WillDebug {
   private roomPosition: Vector2 = Vector2.zero();

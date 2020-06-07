@@ -1,7 +1,7 @@
-import { Vector2 } from "rtchess-core";
 import Piece, { PieceType, PieceOwner } from "./Piece";
 import ClientRuntime from "../../Runtime/ClientRuntime";
 import Color from "../../Renderer/Color";
+import Vector2 from '../../../../RTChessCore/src/Primitives/Vector2';
 
 export default class Pawn extends Piece {
   constructor(coords: Vector2, owner: PieceOwner = PieceOwner.PLAYER) {

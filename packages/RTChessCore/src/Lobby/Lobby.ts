@@ -1,13 +1,10 @@
-import SerialisedPlayer from '../Player/SerialisedPlayer';
-import Match from '../Match/Match';
-import PlayerCore, { PlayerState } from '../Player/PlayerCore';
-import { SerialisedMatch } from '../Match/SerialisedMatch';
-import Logger from '../Logging/Logger';
+import Match, { SerialisedMatch } from '../Match/Match';
+import { PlayerCore, PlayerState, SerialisedPlayer } from '../Player/Player';
+import Monolog from '../Logging/Monolog';
 
-export interface SerialisedLobby {
-  client: SerialisedPlayer;
-  players: SerialisedPlayer[];
-  matches: SerialisedMatch[];
+export enum LobbyEvent {
+  PLAYER_ADDED = "LOBBY:PLAYER_ADDED",
+  PLAYER_REMOVED = "LOBBY:PLAYER_REMOVED",
 }
 
 export enum LobbyType {
@@ -15,12 +12,18 @@ export enum LobbyType {
   SERVER =  "SERVER",
 }
 
+export interface SerialisedLobby {
+  client: SerialisedPlayer;
+  players: SerialisedPlayer[];
+  matches: SerialisedMatch[];
+}
+
 export default abstract class Lobby {
   private players: Map<string, PlayerCore> = new Map();
   private matchesByPlayer: Map<PlayerCore, Match> = new Map();
   private matchesById: Map<string, Match> = new Map();
 
-  protected abstract getLogger(): Logger;
+  protected abstract getLogger(): Monolog;
   protected abstract getType(): LobbyType;
 
   public getPlayerCount(): number {
@@ -79,11 +82,11 @@ export default abstract class Lobby {
     return [...this.matchesById.values()];
   }
 
-  public getMatchById(id: string): Match {
+  public getMatchById(id: string): Match | null {
     const match = this.matchesById.get(id);
 
     if (match === undefined) {
-      throw new Error("Trying to get a match that does not exist!");
+      return null;
     }
 
     return match;
@@ -128,7 +131,7 @@ export default abstract class Lobby {
   public updateMatches(): void {
     for (const match of this.matchesById.values()) {
       if (match.isReady()) {
-        match.start();
+        // TODO: Start Match!
       }
     }
   }

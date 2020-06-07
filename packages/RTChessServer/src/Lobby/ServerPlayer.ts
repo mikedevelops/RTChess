@@ -1,5 +1,5 @@
-import { PlayerCore, SerialisedPlayer, PlayerState, PlayerType } from 'rtchess-core';
 import { Socket } from 'socket.io';
+import { PlayerCore, PlayerState, PlayerType, SerialisedPlayer } from '../../../RTChessCore/src/Player/Player';
 
 export default class ServerPlayer implements PlayerCore {
   constructor(

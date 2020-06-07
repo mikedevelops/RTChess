@@ -1,10 +1,12 @@
-import { Lobby, Match } from 'rtchess-core';
-import { LobbyType, PlayerState, Logger, SerialisedLobby } from 'rtchess-core';
 import ClientRuntime from '../Runtime/ClientRuntime';
 import ClientPlayer from './ClientPlayer';
+import Lobby, { LobbyType, SerialisedLobby } from '../../../RTChessCore/src/Lobby/Lobby';
+import { PlayerState } from '../../../RTChessCore/src/Player/Player';
+import Match from '../../../RTChessCore/src/Match/Match';
+import Monolog from '../../../RTChessCore/src/Logging/Monolog';
 
 export default class ClientLobby extends Lobby {
-  public getLogger(): Logger {
+  public getLogger(): Monolog {
     return ClientRuntime.instance.logger;
   }
 
@@ -75,15 +77,12 @@ export default class ClientLobby extends Lobby {
     for (const match of lobby.matches) {
       const p1 = this.getPlayerById(match.playerOne.id);
       const p2 = this.getPlayerById(match.playerTwo.id);
-      let exists;
 
       if (p1 === undefined || p2 === undefined) {
         throw new Error("Trying to create a match with players that are not in the lobby!");
       }
 
-      try {
-        exists = this.getMatchById(match.id);
-      } catch (e) {
+      if (this.getMatchById(match.id) === null) {
         this.createMatch(new Match(p1, p2));
       }
     }

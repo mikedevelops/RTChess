@@ -1,6 +1,7 @@
 import DisplayList from './DisplayList';
-import { Match, Vector2, MatchState } from 'rtchess-core';
 import Color from '../../Renderer/Color';
+import Match, { MatchState } from '../../../../RTChessCore/src/Match/Match';
+import Vector2 from '../../../../RTChessCore/src/Primitives/Vector2';
 
 export default class DisplayMatchList extends DisplayList<Match> {
   protected getItems(): Match[] {
