@@ -16,15 +16,18 @@ const isBrowserEnv = () => {
   }
 }
 
-export const request = (url: string, data: RequestParams = {}): Promise<Response> => {
+export const POST = "POST";
+export const GET = "GET";
+
+export const request = (method: string, url: string, data: RequestParams = {}): Promise<Response> => {
   if (isBrowserEnv()) {
-    return clientRequest(url, data);
+    return clientRequest(method, url, data);
   }
 
-  return serverRequest(url, data);
+  return serverRequest(method, url, data);
 };
 
-const serverRequest = (endpoint: string, data: RequestParams): Promise<Response> => {
+const serverRequest = (method: string, endpoint: string, data: RequestParams): Promise<Response> => {
   const http = require("http");
   const url = require("url");
   const agent = new http.Agent({ keepAlive: true });
@@ -44,31 +47,34 @@ const serverRequest = (endpoint: string, data: RequestParams): Promise<Response>
       host: "localhost",
       protocol: "http:",
       port: 3000,
-      method: 'POST',
+      method: method,
       path: url.parse(endpoint).path,
       headers: {
         "Content-Type": "application/json",
         "Content-Length": Buffer.byteLength(serialisedData)
       }
     }, (res: IncomingMessage) => {
+      let responseData = "";
+
       res.on("end", () => {
-        resolve();
+        resolve({ data: responseData });
       });
 
+      res.on("data", chunk => {
+        responseData += chunk;
+      });
     });
 
     req.on("error", (error: Error) => {
       reject(error);
     });
 
-    // TODO: we are not handling responseText at all
-
     req.write(serialisedData);
     req.end();
   });
 };
 
-const clientRequest = (url: string, data: RequestParams): Promise<Response> => {
+const clientRequest = (method: string, url: string, data: RequestParams): Promise<Response> => {
   const req = new XMLHttpRequest();
 
   return new Promise((resolve, reject) => {
@@ -81,8 +87,11 @@ const clientRequest = (url: string, data: RequestParams): Promise<Response> => {
       return;
     }
 
+    let responseData = "";
+
     const res = () => {
       if (req.readyState !== XMLHttpRequest.DONE) {
+        responseData += req.responseText;
         return;
       }
 
@@ -93,7 +102,7 @@ const clientRequest = (url: string, data: RequestParams): Promise<Response> => {
         }
 
         try {
-          resolve(JSON.parse(req.responseText));
+          resolve({ data: JSON.parse(responseData) });
         } catch(error) {
           reject(new Error(`Unable to parse response text as JSON "${req.responseText}"`));
         }
@@ -105,7 +114,7 @@ const clientRequest = (url: string, data: RequestParams): Promise<Response> => {
     }
 
     req.onreadystatechange = res;
-    req.open("POST", url);
+    req.open(method, url);
     req.setRequestHeader('Content-Type', 'application/json');
     req.send(serialisedData);
   });

@@ -3,11 +3,11 @@ import SerialisedPiece from './SerialisedPiece';
 
 export default abstract class Piece {
   constructor(
-    private id: number,
+    private id: string,
     private position: Vector2
   ) {}
 
-  public getId(): number {
+  public getId(): string {
     return this.id;
   }
 

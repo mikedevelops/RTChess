@@ -6,7 +6,7 @@ import Color from '../../Renderer/Color';
 import Unit from '../../Math/Unit';
 import Text from '../../Renderer/Text';
 import Entity from '../../Object/Entity';
-import Piece from '../Piece/Piece';
+import DisplayPiece from '../Piece/DisplayPiece';
 import Rect from '../../../../RTChessCore/src/Primitives/Rect';
 import Vector2 from '../../../../RTChessCore/src/Primitives/Vector2';
 
@@ -19,10 +19,10 @@ const NAME = "TILE";
  * getRelativeSize() for example) that are relative to itself...
  */
 
-export default class Tile extends Entity implements WillDebug, WillDraw {
+export default class DisplayTile extends Entity implements WillDebug, WillDraw {
   public static SIZE: number = Unit.getUnit(2);
 
-  private piece: Piece | null = null;
+  private piece: DisplayPiece | null = null;
 
   constructor(private coords: Vector2) {
     super();
@@ -52,20 +52,20 @@ export default class Tile extends Entity implements WillDebug, WillDraw {
     ctx.fillStyle = (this.coords.x + this.coords.y) % 2 === 0 ?
       Color.BLUE.toString() :
       Color.GREEN.toString();
-    ctx.fillRect(position.x, position.y, Tile.SIZE, Tile.SIZE);
+    ctx.fillRect(position.x, position.y, DisplayTile.SIZE, DisplayTile.SIZE);
     ctx.restore();
   }
 
-  public getPiece(): Piece | null {
+  public getPiece(): DisplayPiece | null {
     return this.piece;
   }
 
-  public removePiece(piece: Piece): void {
+  public removePiece(piece: DisplayPiece): void {
     this.piece = null;
     this.removeChild(piece);
   }
 
-  public addPiece(piece: Piece): Piece | null {
+  public addPiece(piece: DisplayPiece): DisplayPiece | null {
     const oldPiece = this.piece;
 
     if (oldPiece !== null) {
@@ -91,7 +91,7 @@ export default class Tile extends Entity implements WillDebug, WillDraw {
     return super
       .getWorldPosition()
       .clone()
-      .add(this.coords.clone().multiply(Tile.SIZE, -Tile.SIZE));
+      .add(this.coords.clone().multiply(DisplayTile.SIZE, -DisplayTile.SIZE));
   }
 
   public start(): void {}
@@ -109,7 +109,7 @@ export default class Tile extends Entity implements WillDebug, WillDraw {
       position.x,
       position.y + Text.FONT_SIZE
     );
-    ctx.strokeRect(position.x, position.y, Tile.SIZE, Tile.SIZE);
+    ctx.strokeRect(position.x, position.y, DisplayTile.SIZE, DisplayTile.SIZE);
 
     // Clickable
     const clickableRect = this.getClickableRect();
@@ -123,8 +123,8 @@ export default class Tile extends Entity implements WillDebug, WillDraw {
 
     return new Rect(
       position.y,
-      position.x + Tile.SIZE,
-      position.y + Tile.SIZE,
+      position.x + DisplayTile.SIZE,
+      position.y + DisplayTile.SIZE,
       position.x
     );
   }
@@ -132,7 +132,7 @@ export default class Tile extends Entity implements WillDebug, WillDraw {
   public getWorldRect(): Rect {
     const position = this.getWorldPosition();
     return new Rect(
-      position.y, position.x + Tile.SIZE, position.y + Tile.SIZE, position.x
+      position.y, position.x + DisplayTile.SIZE, position.y + DisplayTile.SIZE, position.x
     );
   }
 }

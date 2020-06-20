@@ -1,5 +1,5 @@
 import Entity from "./Entity";
-import Tile from "../GameObject/Board/Tile";
+import DisplayTile from "../GameObject/Board/DisplayTile";
 import Rect from '../../../RTChessCore/src/Primitives/Rect';
 import Vector2 from '../../../RTChessCore/src/Primitives/Vector2';
 
@@ -22,8 +22,8 @@ export default abstract class GridObject extends Entity {
   }
 
   protected getTileRect(): Rect {
-    const size = this.getRelativeSize() * Tile.SIZE;
-    const padding = (Tile.SIZE - size) / 2;
+    const size = this.getRelativeSize() * DisplayTile.SIZE;
+    const padding = (DisplayTile.SIZE - size) / 2;
 
     return new Rect(padding, size + padding, size + padding, padding);
   }

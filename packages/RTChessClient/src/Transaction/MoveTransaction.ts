@@ -1,5 +1,5 @@
-import Tile from "../GameObject/Board/Tile";
-import Piece from "../GameObject/Piece/Piece";
+import DisplayTile from "../GameObject/Board/DisplayTile";
+import DisplayPiece from "../GameObject/Piece/DisplayPiece";
 import DisplayBoard from "../GameObject/Board/DisplayBoard";
 import Transaction from './Transaction';
 import { SerialisedMoveTransaction, TransactionType } from '../../../RTChessCore/src/Transaction/Transaction';
@@ -10,8 +10,8 @@ export default class MoveTransaction extends Transaction {
     createdAt: number,
     player: PlayerCore,
     private board: DisplayBoard,
-    private piece: Piece,
-    private tile: Tile
+    private piece: DisplayPiece,
+    private tile: DisplayTile
   ) {
     super(createdAt, player);
   }
@@ -29,11 +29,11 @@ export default class MoveTransaction extends Transaction {
     };
   }
 
-  public getPiece(): Piece {
+  public getPiece(): DisplayPiece {
     return this.piece;
   }
 
-  public getTile(): Tile {
+  public getTile(): DisplayTile {
     return this.tile;
   }
 

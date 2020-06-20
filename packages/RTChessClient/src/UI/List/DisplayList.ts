@@ -49,13 +49,7 @@ export default abstract class DisplayList<T> extends Entity implements WillDraw 
     }
   }
 
-  protected drawItem(ctx: CanvasRenderingContext2D, item: T, position: Vector2): void {
-    if (typeof item === "string") {
-      ctx.fillText(item, position.x, position.y);
-    }
-
-    throw new Error("Implement a default or explicit drawItem() for this type!");
-  }
+  protected abstract drawItem(ctx: CanvasRenderingContext2D, item: T, position: Vector2): void;
 
   public getSortLayer(): SortLayer {
     return SortLayer.UI;

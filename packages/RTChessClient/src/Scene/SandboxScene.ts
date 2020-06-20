@@ -1,4 +1,3 @@
-import { S_SANDBOX } from "./scenes";
 import WillEnter from "./WillEnter";
 import Scene from "./Scene";
 import ClientRuntime from "../Runtime/ClientRuntime";
@@ -10,7 +9,7 @@ export default class SandboxScene extends Scene implements WillEnter {
   private board: DisplayBoard | null = null;
 
   public getName(): string {
-    return S_SANDBOX;
+    return "SANDBOX_SCENE";
   }
 
   public update(): boolean {

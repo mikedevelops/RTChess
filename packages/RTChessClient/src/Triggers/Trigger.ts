@@ -1,6 +1,6 @@
 import WillDebug from "../Object/WillDebug";
 import ClientRuntime from "../Runtime/ClientRuntime";
-import Tile from "../GameObject/Board/Tile";
+import DisplayTile from "../GameObject/Board/DisplayTile";
 import Color from "../Renderer/Color";
 import GridObject from "../Object/GridObject";
 import Vector2 from '../../../RTChessCore/src/Primitives/Vector2';
@@ -23,7 +23,7 @@ export default abstract class Trigger extends GridObject implements WillDebug {
     const ctx = ClientRuntime.instance.renderer.getContext();
     const position = this.getWorldPosition();
     const size = 0.5;
-    const offset = ((1 - size) / 2) * Tile.SIZE;
+    const offset = ((1 - size) / 2) * DisplayTile.SIZE;
 
     ctx.save();
 
@@ -31,8 +31,8 @@ export default abstract class Trigger extends GridObject implements WillDebug {
     ctx.strokeRect(
       position.x + offset,
       position.y + offset,
-      Tile.SIZE * size,
-      Tile.SIZE * size
+      DisplayTile.SIZE * size,
+      DisplayTile.SIZE * size
     );
 
     ctx.restore();

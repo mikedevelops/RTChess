@@ -47,6 +47,6 @@ app.get("/", (req, res) => {
 });
 
 server.listen(PORT, () => {
-  runtime.getLogger().info(`Server listening on ${PORT}`);
+  runtime.getLogger().info(`Game Server listening on ${PORT}`);
   runtime.start();
 });

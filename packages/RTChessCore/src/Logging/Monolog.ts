@@ -1,10 +1,12 @@
-import { LogData, LogLevel, LogSrc, SerialisedLog } from '../../../RTChessLog/src/Log/Logger';
-import { request } from "../Request/Request";
+import { POST, request } from '../Request/Request';
+import Log, { LogData, LogLevel } from '../../../RTChessLog/src/Log/Log';
 
 const LOG_ENDPOINT = "http://localhost:3000/log";
 
-export default class Monolog {
-  constructor(private src: LogSrc) {}
+export default abstract class Monolog {
+  public verbose(message: string, data: LogData = {}): void {
+    this.publish(LogLevel.VERBOSE, message, data);
+  }
 
   public info(message: string, data: LogData = {}): void {
     this.publish(LogLevel.INFO, message, data);
@@ -19,15 +21,11 @@ export default class Monolog {
   }
 
   private publish(level: LogLevel, message: string, data: LogData = {}): void {
-    const serialised: SerialisedLog = {
-      src: this.src,
-      level: level,
-      createdAt: Date.now(),
-      message,
-      data: JSON.stringify(data),
-    };
+    const log = this.createLog(level, message, data);
 
     // TODO: Decide how to handle these requests failing!
-    request(LOG_ENDPOINT, { log: JSON.stringify(serialised) });
+    request(POST, LOG_ENDPOINT, { log: JSON.stringify(log.serialise()) });
   }
+
+  public abstract createLog(level: LogLevel, message: string, data: LogData): Log;
 }

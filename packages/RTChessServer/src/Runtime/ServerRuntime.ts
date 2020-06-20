@@ -4,11 +4,12 @@ import Runtime from '../../../RTChessCore/src/Runtime/Runtime';
 import Lobby, { LobbyEvent } from '../../../RTChessCore/src/Lobby/Lobby';
 import { SerialisedPlayer } from '../../../RTChessCore/src/Player/Player';
 import Monolog from '../../../RTChessCore/src/Logging/Monolog';
-import { MatchEvent } from '../../../RTChessCore/src/Match/Match';
-import { LogSrc } from '../../../RTChessLog/src/Log/Logger';
+import Match, { MatchEvent, SerialisedMove } from '../../../RTChessCore/src/Match/Match';
+import MonologServer from '../Logger/MonologServer';
 
 export default class ServerRuntime extends Runtime {
-  private logger: Monolog = new Monolog(LogSrc.SERVER);
+  private logger: Monolog = new MonologServer();
+  private matches: { [index: string]: Match } = {};
 
   public static instance: ServerRuntime;
 
@@ -34,17 +35,17 @@ export default class ServerRuntime extends Runtime {
     this.io.on("connection", (socket: Socket) => {
       const player = new ServerPlayer(this.getId(), socket);
 
-      this.logger.info("Client Connected", { socket: socket.id });
+      this.logger.info("Player Connected", { id: socket.id });
       this.lobby.addPlayer(player);
+      this.logger.info("Player Added to Lobby", { id: socket.id });
       this.lobby.matchmake();
 
       this.forEachPlayer((player: ServerPlayer) => {
-        this.logger.event(`(Server -> Client) Player Added`, { player: player.getId(), socket: player.getSocket().id });
         player.getSocket().emit(LobbyEvent.PLAYER_ADDED, this.lobby.serialise(player.getId()));
       });
 
       socket.on("disconnect", () => {
-        this.logger.info("Client Disconnected", { socket: socket.id });
+        this.logger.info("Client Disconnected", { id: socket.id });
         this.lobby.removePlayer(player);
         this.lobby.matchmake();
 
@@ -53,10 +54,26 @@ export default class ServerRuntime extends Runtime {
         });
       });
 
+      // TODO: factor these handlers out
       socket.on(MatchEvent.READY, (sp: SerialisedPlayer) => {
-        this.lobby.setPlayerReady(sp.id);
+        const match = this.lobby.setPlayerReady(sp.id);
+
         this.forEachPlayer((player: ServerPlayer) => {
           player.getSocket().emit(MatchEvent.READY, this.lobby.serialise(player.getId()));
+        });
+
+        if (!match.isReady()) {
+          return;
+        }
+
+        this.forEachPlayer((player: ServerPlayer) => {
+          player.getSocket().emit(MatchEvent.START);
+        });
+
+        this.matches[match.getId()] = match;
+
+        socket.on(MatchEvent.MOVE, (move: SerialisedMove) => {
+          console.log(move);
         });
       });
     });

@@ -13,7 +13,7 @@ export default class Board {
 
   public start(): void {
     for (let i = 0; i < 4; i++) {
-      const pawn = new Pawn(this.pieces.size, new Vector2(i, 0));
+      const pawn = new Pawn(this.pieces.size.toString(), new Vector2(i, 0));
       this.pieces.set(pawn.getPosition(), pawn);
     }
   }

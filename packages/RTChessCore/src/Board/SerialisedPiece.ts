@@ -1,4 +1,4 @@
 export default interface SerialisedPiece {
-  id: number;
+  id: string;
   position: [number,number];
 }

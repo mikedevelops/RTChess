@@ -1,6 +1,9 @@
-export const S_STARTUP = "S_STARTUP";
-export const S_SANDBOX = "S_SANDBOX";
+import LobbyScene from './LobbyScene';
+import MatchScene from './MatchScene';
+import DebugLobbyScene from './DebugLobbyScene';
 
-export default {
-  scenes: [S_STARTUP, S_SANDBOX],
-};
+export default [
+ new LobbyScene(),
+//   new DebugLobbyScene(),
+  new MatchScene(),
+];

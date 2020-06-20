@@ -1,6 +1,8 @@
 import Queue from '../Primitives/Queue';
 import { PlayerCore, PlayerState, SerialisedPlayer } from '../Player/Player';
 import { SerialisedTransaction } from '../Transaction/Transaction';
+import SerialisedPiece from '../Board/SerialisedPiece';
+import { SerialisedVector2 } from '../Primitives/Vector2';
 
 export enum MatchState {
   READYING = "READYING",
@@ -13,7 +15,14 @@ export enum MatchState {
 export enum MatchEvent {
   MATCHED = "SERVER:MATCH:MATCHED",
   READY = "SERVER:MATCH:READY",
-  START = "SERVER:MATCH:"
+  START = "SERVER:MATCH:START",
+  MOVE = "SERVER:MATCH:MOVE",
+}
+
+export interface SerialisedMove {
+  player: SerialisedPlayer;
+  piece: SerialisedPiece;
+  position: SerialisedVector2;
 }
 
 export interface SerialisedMatch {
@@ -24,7 +33,7 @@ export interface SerialisedMatch {
 
 export default class Match {
   private transactions: Queue<SerialisedTransaction> = new Queue();
-  private id: string;
+  private readonly id: string;
 
   constructor(
     private playerOne: PlayerCore,
@@ -82,14 +91,6 @@ export default class Match {
   public isReady(): boolean {
     return this.playerOne.getState() === PlayerState.READY &&
       this.playerTwo.getState() === PlayerState.READY;
-  }
-
-  public createMoveTransaction(transaction: SerialisedTransaction): void {
-    if (this.transactions.has(transaction)) {
-      throw new Error("CLASH!");
-    }
-
-    this.transactions.enqueue(transaction);
   }
 
   public serialise(): SerialisedMatch {

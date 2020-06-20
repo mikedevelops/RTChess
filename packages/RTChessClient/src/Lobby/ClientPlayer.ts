@@ -39,7 +39,13 @@ export default class ClientPlayer implements PlayerCore {
   }
 
   public isClientPlayer(): boolean {
-    return ClientRuntime.instance.getPlayer() !== null && ClientRuntime.instance.getPlayer() === this;
+    const player = ClientRuntime.instance.getPlayer();
+
+    if (player === null) {
+      return false;
+    }
+
+    return player.getSocket().id === this.getSocket().id;
   }
 
   public serialise(): SerialisedPlayer {

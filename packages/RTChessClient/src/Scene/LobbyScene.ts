@@ -8,12 +8,14 @@ import { PlayerState } from '../../../RTChessCore/src/Player/Player';
 import { LobbyEvent, SerialisedLobby } from '../../../RTChessCore/src/Lobby/Lobby';
 
 export default class LobbyScene extends Scene implements WillEnter {
+  private start: boolean = false;
+
   public getName(): string {
     return 'SCENE_LOBBY';
   }
 
   public update(): boolean {
-    return false;
+    return this.start;
   }
 
   public enter(): void {
@@ -26,7 +28,7 @@ export default class LobbyScene extends Scene implements WillEnter {
     lobbyList.center();
 
     socket.on(LobbyEvent.PLAYER_ADDED, (sl: SerialisedLobby) => {
-      logger.event(`(Server -> Client) Player added to Lobby`, { player: sl.client.id, client: socket.id  });
+      logger.event(`${sl.client.id} added to Lobby`, { player: sl.client.id, client: socket.id });
 
       if (ClientRuntime.instance.getPlayer() === null) {
         const player = ClientRuntime.instance.createPlayer(sl.client.id, socket);
@@ -52,6 +54,10 @@ export default class LobbyScene extends Scene implements WillEnter {
 
     socket.on(MatchEvent.READY, (sl: SerialisedLobby) => {
       lobby.update(sl);
+    });
+
+    socket.on(MatchEvent.START, () => {
+      this.start = true;
     });
   }
 }

@@ -6,13 +6,13 @@ import Color from '../Renderer/Color';
 import Entity from '../Object/Entity';
 import Node from '../Object/Node';
 import { InputEvent } from '../Input/InputDelegator';
-import Tile from '../GameObject/Board/Tile';
-import MathUtils from '../Math/MathUtils';
+import DisplayTile from '../GameObject/Board/DisplayTile';
 import DebugInputManager from '../Input/DebugInputManager';
 import ClientPlayer from '../Lobby/ClientPlayer';
 import Vector2 from '../../../RTChessCore/src/Primitives/Vector2';
 import { SerialisedTransaction, TransactionState } from '../../../RTChessCore/src/Transaction/Transaction';
 import { Log } from '../../../RTChessLog/src/Log/Logger';
+import { clamp } from '../../../RTChessCore/src/Math/Math';
 
 export enum DebugFlag {
   FRAMES,
@@ -160,8 +160,8 @@ export default class Debugger {
 
         let label = entity.getName();
 
-        if (entity instanceof Tile) {
-          label += ` ${(entity as Tile).getCoords().toString()}`;
+        if (entity instanceof DisplayTile) {
+          label += ` ${(entity as DisplayTile).getCoords().toString()}`;
         }
 
         ctx.fillText(
@@ -200,7 +200,7 @@ export default class Debugger {
 
       ctx.fillText("TRANSACTIONS", lineOffsetX, (lineOffsetY += newline * 2));
       transactions
-        .slice(MathUtils.clamp(transactions.length - max))
+        .slice(clamp(transactions.length - max))
         .reverse()
         .forEach((transaction: SerialisedTransaction, index: number) => {
           switch (transaction.state) {

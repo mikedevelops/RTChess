@@ -4,22 +4,25 @@ import SceneManager from '../Scene/SceneManager';
 import Debugger from '../Debugger/Debugger';
 import Time from '../Time/Time';
 import Scene from '../Scene/Scene';
+import MatchScene from '../Scene/MatchScene';
 import Entity from '../Object/Entity';
 import AbstractInputManager from '../Input/AbstractInputManager';
 import DisplayBoard from '../GameObject/Board/DisplayBoard';
-import Piece from '../GameObject/Piece/Piece';
+import DisplayPiece from '../GameObject/Piece/DisplayPiece';
 import MoveResolver from './MoveResolver';
 import TransactionManager from '../Transaction/TransactionManager';
 import io from 'socket.io-client';
 import ClientPlayer from '../Lobby/ClientPlayer';
-import LobbyScene from '../Scene/LobbyScene';
 import ClientLobby from '../Lobby/ClientLobby';
 import Vector2 from '../../../RTChessCore/src/Primitives/Vector2';
 import { SerialisedTransaction } from '../../../RTChessCore/src/Transaction/Transaction';
 import Runtime from '../../../RTChessCore/src/Runtime/Runtime';
 import Monolog from '../../../RTChessCore/src/Logging/Monolog';
+import scenes from '../Scene/scenes';
+import { MatchEvent, SerialisedMove } from '../../../RTChessCore/src/Match/Match';
+import DisplayTile from '../GameObject/Board/DisplayTile';
+import MonologClient from '../Logging/MonologClient';
 import Socket = SocketIOClient.Socket;
-import { LogSrc } from '../../../RTChessLog/src/Log/Logger';
 
 export enum RuntimeMode {
   STEPPED = "STEPPED",
@@ -45,7 +48,7 @@ export default class ClientRuntime extends Runtime {
 
   public input = new InputDelegator();
   public lobby: ClientLobby = new ClientLobby();
-  public logger: Monolog = new Monolog(LogSrc.CLIENT);
+  public logger: Monolog = new MonologClient();
   public transactionManager = new TransactionManager();
   public moveResolver = new MoveResolver();
 
@@ -68,7 +71,7 @@ export default class ClientRuntime extends Runtime {
     ClientRuntime.instance = this;
 
     this.renderer = new Renderer(canvas, devicePixelRatio);
-    this.sceneManager = new SceneManager([new LobbyScene()]);
+    this.sceneManager = new SceneManager(scenes);
     this.updateWithContext = this.update.bind(this);
   }
 
@@ -81,7 +84,7 @@ export default class ClientRuntime extends Runtime {
 
     // TODO: need to get a lobby here
     this.socket.on("connect", () => {
-      this.logger.info("Connected to Server", {socket: this.getSocket().id});
+      this.logger.verbose("Connected to Game Server", {socket: this.getSocket().id});
       this.start();
     });
   }
@@ -138,7 +141,11 @@ export default class ClientRuntime extends Runtime {
   }
 
   public start() {
-    this.logger.info("Starting Client Runtime", { mode: this.mode, flags: this.flags.join(",") });
+    this.logger.info("Starting Client Runtime", {
+      mode: this.mode,
+      flags: this.flags.join(","),
+      id: this.getSocket().id,
+    });
 
     if (this.mode === RuntimeMode.STEPPED) {
       this.enableSteppedMode();
@@ -216,20 +223,20 @@ export default class ClientRuntime extends Runtime {
     return this.transactionManager.getHistory();
   }
 
-  /*
-  public createMoveTransaction(
-    piece: Piece,
-    target: Tile,
-  ): MoveTransaction {
-    return this.transactionManager.createMoveTransaction(
-      Date.now(),
-      this.player,
-      this.getBoard(),
-      piece,
-      target
-    );
+  public createMoveTransaction(piece: DisplayPiece, tile: DisplayTile): void {
+    if (this.player === null) {
+      return;
+    }
+
+    const socket = this.getSocket();
+    const move: SerialisedMove = {
+      piece: piece.serialise(),
+      player: this.player.serialise(),
+      position: tile.getPosition().serialise(),
+    };
+
+    socket.emit(MatchEvent.MOVE, move);
   }
-   */
 
   public toggleDebugger(): void {
     this.debug.toggleEnabled();
@@ -238,7 +245,7 @@ export default class ClientRuntime extends Runtime {
   public getBoard(): DisplayBoard {
     const scene = this.getScene();
 
-    if (scene.getName() === "S_SANDBOX") {
+    if (scene instanceof MatchScene) {
       return (scene as any).getBoard() as DisplayBoard;
     }
 
@@ -255,7 +262,7 @@ export default class ClientRuntime extends Runtime {
     return this.player;
   }
 
-  public getAvailableMoves(piece: Piece): Vector2[] {
+  public getAvailableMoves(piece: DisplayPiece): Vector2[] {
     return this.moveResolver.getAvailableMoves(piece);
   }
 }

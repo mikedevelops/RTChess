@@ -1,39 +1,38 @@
 import Entity from "../../Object/Entity";
 import WillDraw from "../../Object/WillDraw";
 import WillDebug from "../../Object/WillDebug";
-import Tile from "./Tile";
-import Piece from "../Piece/Piece";
+import DisplayTile from "./DisplayTile";
+import DisplayPiece, { PieceOwner } from '../Piece/DisplayPiece';
 import ClientRuntime, { RuntimeFlag } from "../../Runtime/ClientRuntime";
 import { SortLayer } from "../../Renderer/Renderer";
 import Rect from '../../../../RTChessCore/src/Primitives/Rect';
 import Vector2 from '../../../../RTChessCore/src/Primitives/Vector2';
+import { getEntityId } from '../../Runtime/EntityManager';
+import Pawn from '../Piece/Pawn';
 
 export default class DisplayBoard extends Entity implements WillDraw, WillDebug {
-  private tiles: Map<string, Tile> = new Map();
-  private pieces: Map<string, Piece> = new Map();
+  private tiles: Map<string, DisplayTile> = new Map();
+  private pieces: Map<string, DisplayPiece> = new Map();
   private width: number = 4;
   private height: number = 4;
-  private activePiece: Piece | null = null;
+  private activePiece: DisplayPiece | null = null;
 
   public setState(data: { [index: number]: number }): void {
-  }
-
-  public start(): void {
   }
 
   public getSortLayer(): SortLayer {
     return SortLayer.BOARD;
   }
 
-  public getPieces(): Piece[] {
+  public getPieces(): DisplayPiece[] {
     return [...this.pieces.values()];
   }
 
-  public getTiles(): Tile[] {
+  public getTiles(): DisplayTile[] {
     return [...this.tiles.values()];
   }
 
-  public getPieceAtPosition(position: Vector2): Piece | null {
+  public getPieceAtPosition(position: Vector2): DisplayPiece | null {
     for (const tile of this.getTiles()) {
       if (position.isInside(tile.getClickableRect())) {
         return tile.getPiece();
@@ -44,7 +43,7 @@ export default class DisplayBoard extends Entity implements WillDraw, WillDebug 
   }
 
   public getWorldPosition(): Vector2 {
-    return super.getWorldPosition().add(Vector2.unit(0, this.height -1, Tile.SIZE));
+    return super.getWorldPosition().add(Vector2.unit(0, this.height -1, DisplayTile.SIZE));
   }
 
   public selectTileAtWorldPosition(position: Vector2): void {
@@ -65,7 +64,7 @@ export default class DisplayBoard extends Entity implements WillDraw, WillDebug 
           this.activePiece = piece;
           // TODO: I feel as though typescript should be able to know this is
           // not null??? Is my condition wrong? Seems okay to me...
-          (piece as Piece).focus();
+          (piece as DisplayPiece).focus();
         }
 
       return;
@@ -87,16 +86,53 @@ export default class DisplayBoard extends Entity implements WillDraw, WillDebug 
       // if we clicked another piece
       if (canFocusPiece) {
         this.activePiece = piece;
-        (piece as Piece).focus();
+        (piece as DisplayPiece).focus();
       }
     }
   }
 
-  public movePiece(piece: Piece, tile: Tile): void {
-    //ClientRuntime.instance.createMoveTransaction(piece, tile);
+  public movePiece(piece: DisplayPiece, tile: DisplayTile): void {
+    ClientRuntime.instance.createMoveTransaction(piece, tile);
   }
 
-  public getTileAt(position: Vector2): Tile | null {
+  public start(): void {
+    for (let x = 0; x < this.width; x++) {
+      for (let y = 0; y < this.height; y++) {
+        const tile = new DisplayTile(new Vector2(x, y));
+        this.tiles.set(tile.getId(), tile);
+        this.addChild(tile);
+      }
+    }
+
+    // TODO: We should define a starting position and then just mirror
+    // it at the other end of the board.
+    //
+    // - IDEA
+    //  - A mode where player can swap (n) piece positions
+    [
+      new Pawn(new Vector2(0, 0)),
+      new Pawn(new Vector2(1, 0)),
+      new Pawn(new Vector2(2, 0)),
+      new Pawn(new Vector2(3, 0)),
+
+      new Pawn(new Vector2(0, 3), PieceOwner.OPPONENT),
+      new Pawn(new Vector2(1, 3), PieceOwner.OPPONENT),
+      new Pawn(new Vector2(2, 3), PieceOwner.OPPONENT),
+      new Pawn(new Vector2(3, 3), PieceOwner.OPPONENT),
+    ].forEach(piece => {
+      const tile = this.getTileAt(piece.getCoords());
+
+      if (tile === null) {
+        throw new Error(`Attempted to place "${piece.getName()}" at ${piece.getPosition().toString()} but there was no Tile`);
+      }
+
+      tile.addPiece(piece);
+      piece.setId(getEntityId().toString());
+      this.pieces.set(piece.getId(), piece);
+    });
+  }
+
+  public getTileAt(position: Vector2): DisplayTile | null {
     const tile = this.tiles.get(position.toString());
 
     if (tile === undefined) {
@@ -106,8 +142,8 @@ export default class DisplayBoard extends Entity implements WillDraw, WillDebug 
     return tile;
   }
 
-  public getTileAtWorldPosition(position: Vector2): Tile | null {
-    const tile = this.getTiles().find((tile: Tile) => {
+  public getTileAtWorldPosition(position: Vector2): DisplayTile | null {
+    const tile = this.getTiles().find((tile: DisplayTile) => {
       return position.isInside(tile.getClickableRect());
     });
 
@@ -122,8 +158,8 @@ export default class DisplayBoard extends Entity implements WillDraw, WillDebug 
     const position = this.getWorldPosition();
     return new Rect(
       position.y,
-      (this.width * Tile.SIZE) + position.x,
-      position.y + (this.height * Tile.SIZE),
+      (this.width * DisplayTile.SIZE) + position.x,
+      position.y + (this.height * DisplayTile.SIZE),
       position.x
     );
   }

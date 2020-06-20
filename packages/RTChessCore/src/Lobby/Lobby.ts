@@ -54,7 +54,6 @@ export default abstract class Lobby {
 
   public getPlayersByType<T>(type: any): T[] {
     // TODO: This is probably bad typesctipt!!!!
-
     const players: T[] = [];
 
     for (const player of this.players.values()) {
@@ -65,8 +64,6 @@ export default abstract class Lobby {
 
     return players;
   }
-
-  // TODO: Standardise these APIs
 
   public getPlayerById(id: string): PlayerCore {
     const player = this.players.get(id);
@@ -109,7 +106,7 @@ export default abstract class Lobby {
     }
 
     this.players.set(player.getId(), player);
-    this.getLogger().info(`Added player to ${this.getType()} lobby`, { player: player.getId() });
+    this.getLogger().verbose(`Added player to ${this.getType()} lobby`, { player: player.getId() });
   }
 
   public removePlayer(player: PlayerCore): void {
@@ -125,7 +122,7 @@ export default abstract class Lobby {
     }
 
     this.players.delete(player.getId());
-    this.getLogger().info(`Removed player from ${this.getType()} lobby`, { player: player.getId() });
+    this.getLogger().verbose(`Removed player from ${this.getType()} lobby`, { player: player.getId() });
   }
 
   public updateMatches(): void {
@@ -150,6 +147,9 @@ export default abstract class Lobby {
     };
   }
 
+  /**
+   * Matchmake
+   */
   public matchmake(): void {
     if (this.getType() !== LobbyType.SERVER) {
       throw new Error("Attempted to get matches from a non SERVER Lobby");
@@ -175,6 +175,10 @@ export default abstract class Lobby {
     }
   }
 
+  /**
+   * Create Match
+   * @param match
+   */
   protected createMatch(match: Match): void {
     const [p1,p2] = match.getPlayers();
 

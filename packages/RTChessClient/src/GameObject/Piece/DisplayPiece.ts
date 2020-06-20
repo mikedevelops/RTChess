@@ -4,9 +4,10 @@ import WillDraw from '../../Object/WillDraw';
 import { SortLayer } from '../../Renderer/Renderer';
 import WillDebug from '../../Object/WillDebug';
 import Color from '../../Renderer/Color';
-import Tile from '../Board/Tile';
+import DisplayTile from '../Board/DisplayTile';
 import Rect from '../../../../RTChessCore/src/Primitives/Rect';
 import Vector2 from '../../../../RTChessCore/src/Primitives/Vector2';
+import SerialisedPiece from '../../../../RTChessCore/src/Board/SerialisedPiece';
 
 export enum PieceType {
   PAWN
@@ -17,7 +18,7 @@ export enum PieceOwner {
   OPPONENT = "OPPONENT",
 }
 
-export default abstract class Piece extends GridObject implements WillDebug, WillDraw {
+export default abstract class DisplayPiece extends GridObject implements WillDebug, WillDraw {
   private id: string = "";
   private active: boolean = false;
   private moved: boolean = false;
@@ -36,7 +37,7 @@ export default abstract class Piece extends GridObject implements WillDebug, Wil
     return this.moved;
   }
 
-  public isSameSet(piece: Piece): boolean {
+  public isSameSet(piece: DisplayPiece): boolean {
     return piece.getOwner() === this.getOwner();
   }
 
@@ -92,10 +93,10 @@ export default abstract class Piece extends GridObject implements WillDebug, Wil
     for (const position of this.getMoves()) {
       const worldPosition = position
         .clone()
-        .multiply(Tile.SIZE, -Tile.SIZE)
+        .multiply(DisplayTile.SIZE, -DisplayTile.SIZE)
         .add(ClientRuntime.instance.getBoard().getWorldPosition());
 
-      ctx.fillRect(worldPosition.x, worldPosition.y, Tile.SIZE, Tile.SIZE);
+      ctx.fillRect(worldPosition.x, worldPosition.y, DisplayTile.SIZE, DisplayTile.SIZE);
     }
 
     ctx.restore();
@@ -108,8 +109,15 @@ export default abstract class Piece extends GridObject implements WillDebug, Wil
   public getWorldRect(): Rect {
     const position = this.getWorldPosition();
     return new Rect(
-      position.y, position.x + Tile.SIZE, position.y + Tile.SIZE, position.x
+      position.y, position.x + DisplayTile.SIZE, position.y + DisplayTile.SIZE, position.x
     );
+  }
+
+  public serialise(): SerialisedPiece {
+    return {
+      position: this.position.serialise(),
+      id: this.getId(),
+    }
   }
 }
 

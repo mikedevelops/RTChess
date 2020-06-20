@@ -1,5 +1,5 @@
-import Piece from '../GameObject/Piece/Piece';
-import Tile from '../GameObject/Board/Tile';
+import DisplayPiece from '../GameObject/Piece/DisplayPiece';
+import DisplayTile from '../GameObject/Board/DisplayTile';
 import DisplayBoard from '../GameObject/Board/DisplayBoard';
 import MoveTransaction from './MoveTransaction';
 import Transaction from './Transaction';
@@ -30,8 +30,8 @@ export default class TransactionManager {
     createdAt: number,
     player: PlayerCore,
     board: DisplayBoard,
-    piece: Piece,
-    tile: Tile
+    piece: DisplayPiece,
+    tile: DisplayTile
   ): MoveTransaction {
     const transaction = new MoveTransaction(createdAt, player, board, piece, tile);
 

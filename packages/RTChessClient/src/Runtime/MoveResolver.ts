@@ -1,13 +1,13 @@
-import Piece from "../GameObject/Piece/Piece";
+import DisplayPiece from "../GameObject/Piece/DisplayPiece";
 import Pawn from "../GameObject/Piece/Pawn";
 import ClientRuntime from "./ClientRuntime";
-import { PieceType } from "../GameObject/Piece/Piece";
+import { PieceType } from "../GameObject/Piece/DisplayPiece";
 import Vector2 from '../../../RTChessCore/src/Primitives/Vector2';
 
 export default class MoveResolver {
   // TODO: BIG TODO!
   // - Cache available moves when we can!
-  public getAvailableMoves(piece: Piece): Vector2[] {
+  public getAvailableMoves(piece: DisplayPiece): Vector2[] {
     switch(piece.getType()) {
       case PieceType.PAWN:
         return this.getAvailableMovesForPawn(piece as Pawn);

@@ -88,9 +88,9 @@ export default class ClientLobby extends Lobby {
     }
 
     if (created + updated + removed === 0) {
-      this.getLogger().info(`No ${this.getType()} Lobby update required`);
+      this.getLogger().verbose(`No ${this.getType()} Lobby update required`);
     } else {
-      this.getLogger().info(`Updated ${this.getType()} Lobby`, { created: created.toString(), updated: updated.toString(), removed: removed.toString()});
+      this.getLogger().verbose(`Updated ${this.getType()} Lobby`, { created: created.toString(), updated: updated.toString(), removed: removed.toString()});
     }
   };
 }

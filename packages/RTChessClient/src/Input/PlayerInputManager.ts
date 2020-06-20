@@ -18,5 +18,5 @@ export default class PlayerInputManager extends AbstractInputManager {
       }
     });
   }
-
 }
+

@@ -54,7 +54,7 @@ export default class SceneManager {
 
     this.updateEntities(entities);
 
-    if (proceed === false) {
+    if (!proceed) {
       return;
     }
 

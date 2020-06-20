@@ -1,9 +1,9 @@
-import Piece, { PieceType, PieceOwner } from "./Piece";
+import DisplayPiece, { PieceType, PieceOwner } from "./DisplayPiece";
 import ClientRuntime from "../../Runtime/ClientRuntime";
 import Color from "../../Renderer/Color";
 import Vector2 from '../../../../RTChessCore/src/Primitives/Vector2';
 
-export default class Pawn extends Piece {
+export default class Pawn extends DisplayPiece {
   constructor(coords: Vector2, owner: PieceOwner = PieceOwner.PLAYER) {
     super(coords, owner);
   }
